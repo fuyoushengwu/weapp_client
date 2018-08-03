@@ -1,0 +1,27 @@
+<template>
+    <view>
+      <repeat for="{{stores}}" key="index" index="index" item="item">
+        <storecard :store.sync="item"></storecard>
+      </repeat>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy';
+import StoreCard from '../components/store_card';
+import util from '../utils/util';
+export default class Store extends wepy.page {
+  config = { navigationBarTitleText: '定位' };
+  data = {
+    // 门店列表
+    stores: []
+  };
+  components = {
+    storecard: StoreCard
+  };
+  async onLoad() {
+    this.stores = await util.getStoreOrderedByDistance();
+    this.$apply();
+  }
+}
+</script>

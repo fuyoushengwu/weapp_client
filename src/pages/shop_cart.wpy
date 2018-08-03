@@ -1,0 +1,69 @@
+<template>
+  <view class="shop_cart">
+    <shopCart :shopcartList.sync="shopcartList"></shopCart>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ShopCart from '../components/shop_cart';
+import GlobalData from '../conf/globalData';
+import shopcartapi from '../api/shopcartapi';
+import tip from '../utils/tip';
+export default class shopCart extends wepy.page {
+  config = {
+    navigationBarTitleText: '购物车'
+  };
+  data = {
+    shopcartList: [],
+    totalpage: 1,
+    currentpage: 0,
+    pagesize: 10,
+    // 防止重复加载
+    inRequesting: false
+  };
+  components = {
+    shopCart: ShopCart
+  };
+  onShow() {
+    this.getShopCartItemList();
+  }
+  onReachBottom() {
+    this.getShopCartItemList();
+  }
+  getShopCartItemList() {
+    let userid = GlobalData.getUserId();
+    if (this.currentpage >= this.totalpage) {
+      tip.success('已经到底啦');
+      return;
+    }
+    if (this.inRequesting) {
+      return;
+    }
+    this.inRequest = true;
+    this.currentpage += 1;
+    let that = this;
+    shopcartapi
+      .getShopCartItemList(userid, this.currentpage, this.pagesize)
+      .then(res => {
+        that.inRequesting = false;
+        let response = res.data || {};
+        if (response.code != 200) {
+          return;
+        }
+        let getShopCartItemListResponse = response.data;
+        that.currentpage = getShopCartItemListResponse.currentpage;
+        that.totalPrice = getShopCartItemListResponse.totalpage;
+        that.shopcartList = [
+          ...that.shopcartList,
+          ...getShopCartItemListResponse.dataList
+        ];
+        that.$apply();
+      });
+  }
+}
+</script>
+<style lang="less">
+.shop_cart {
+  background: #f7f7f7;
+}
+</style>

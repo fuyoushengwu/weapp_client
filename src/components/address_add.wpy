@@ -1,0 +1,133 @@
+<template>
+    <form @submit="formSubmit">
+        <view class="block">
+            <view class="list_item">
+                <view class="title">收货人姓名:</view>
+                <view class="input">
+                    <input type="text" name="reciever" value=""/>
+                </view>
+            </view>
+            <view class="list_item">
+                <view class="title">联系电话:</view>
+                <view class="input">
+                    <input type="text" name="phone" value=""/>
+                </view>
+            </view>
+            <view class="list_item">
+                <view class="title">所在地区:</view>
+                <view class="input">
+                    <view @tap="showPicker">{{province.name ? province.name : '省'}} - {{city.name ? city.name : '市' }} - {{county.name ? county.name : '区' }}</view>
+                    <areaPicker @updateRecieveAddress.user="updateRecieveAddress"></areaPicker>
+                </view>
+            </view>
+            <view class="list_item">
+                <view class="title">详细地址:</view>
+                <view class="input">
+                    <input type="text" name="detail" value=""/>
+                </view>
+            </view>
+            <view class="list_item">
+                <view class="title">设置默认地址:</view>
+                <view class="input tr" @tap="triggerDef">
+                    <icon type="success" size="20" color="{{def? 'red':'#999'}}" />
+                </view>
+            </view>
+        </view>
+        <view class="btn_box">
+            <button class="button type_red" formType="submit">完成</button>
+        </view>
+    </form>
+</template>
+<script>
+import wepy from 'wepy';
+import AreaPicker from './common/area-picker';
+import GlobalData from '../conf/globalData';
+import userapi from '../api/userapi';
+import tip from '../utils/tip';
+export default class AddressAdd extends wepy.component {
+  data = {
+    // 是否是默认收货地址
+    def: false,
+    province: {},
+    city: {},
+    county: {}
+  };
+  components = {
+    areaPicker: AreaPicker
+  };
+  async addRecieveAddress(recieveAddress) {
+    userapi.addUserRecieveAddress(GlobalData.getUserId(), {
+      reciever: recieveAddress.reciever,
+      phone: recieveAddress.phone,
+      detail: recieveAddress.detail,
+      def: this.def,
+      province: this.province,
+      city: this.city,
+      county: this.county
+    });
+    // 0 列表 1新增 2编辑 (显示列表)
+    this.$emit('currentPage', 0);
+    this.$emit('refreshAddList');
+  }
+  methods = {
+    formSubmit(e) {
+      let reciever = e.detail.value.reciever;
+      let phone = e.detail.value.phone;
+      let detail = e.detail.value.detail;
+      if (reciever == '') {
+        tip.alert('请输入收件人姓名');
+        return false;
+      }
+
+      if (phone == '') {
+        tip.alert('请输入联系电话');
+        return false;
+      }
+
+      if (detail == '') {
+        tip.alert('请输入详细地址');
+        return false;
+      }
+      this.addRecieveAddress(e.detail.value);
+    },
+    showPicker() {
+      this.$invoke('areaPicker', 'showPicker');
+    },
+    triggerDef() {
+      this.def = !this.def;
+    },
+    updateRecieveAddress(province, city, county) {
+      this.province = province;
+      this.city = city;
+      this.county = county;
+      this.$apply();
+    }
+  };
+}
+</script>
+<style lang="less">
+.block {
+  background: #fff;
+}
+
+.list_item {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #efefef;
+  padding: 35rpx 20rpx;
+  .title {
+    margin-right: 20rpx;
+  }
+  .input {
+    flex: 1;
+    input {
+      color: #333;
+    }
+  }
+}
+
+.btn_box {
+  margin-top: 64rpx;
+  padding: 0 24rpx;
+}
+</style>

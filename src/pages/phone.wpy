@@ -1,0 +1,78 @@
+<!--绑定手机-->
+<template>
+  <form @submit="formSubmit">
+    <view class="section">
+      <view class="section_title">手机号</view>
+      <input name="phone" type="number" placeholder="{{phone}}" maxlength="11" focus="true"/>
+    </view>
+    <view class="btn_confirm">
+      <button class="button type_yellow" formType="submit">保存</button>
+    </view>
+  </form>
+</template>
+<script>
+import wepy from 'wepy';
+import GlobalData from '../conf/globalData';
+import userapi from '../api/userapi';
+import tip from '../utils/tip';
+
+export default class Phone extends wepy.page {
+  config = {
+    navigationBarTitleText: '手机号'
+  };
+
+  data = {
+    phone: ''
+  };
+
+  onLoad() {
+    this.phone = GlobalData.getPhone() || '请输入手机号';
+  }
+
+  async updatePhoneNumber(phone) {
+    let userInfo = GlobalData.getUserInfo();
+    userInfo.phone = phone;
+    userapi.updateUser(GlobalData.getUserId(), userInfo).then(res => {
+      let response = res.data || {};
+      if (response.code == 200) {
+        GlobalData.setUserInfo(response.data);
+        tip.success('更新手机号成功', 2000);
+      } else {
+        tip.error('更新手机号失败');
+      }
+    });
+    wepy.navigateBack({
+      delta: 1
+    });
+  }
+
+  methods = {
+    formSubmit(e) {
+      let phone = e.detail.value.phone;
+      if (phone == '') {
+        tip.alert('请输入手机号');
+        return false;
+      }
+      this.updatePhoneNumber(phone);
+    }
+  };
+}
+</script>
+<style lang="less">
+.section {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-bottom: 1px solid #dbdbdb;
+  background: #fff;
+  .section_title {
+    color: #1a1a1a;
+    padding-right: 75rpx;
+  }
+}
+
+.btn_confirm {
+  margin-top: 64rpx;
+  padding: 0 24rpx;
+}
+</style>

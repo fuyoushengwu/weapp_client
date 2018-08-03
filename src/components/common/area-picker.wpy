@@ -1,0 +1,250 @@
+<template>
+    <view wx:if="{{show}}" class="cascade_box">
+        <view class="cascade_hei" animation="{{animationData.fadeAnim}}"></view>
+        <view class="cascade_find" animation="{{animationData.showAnim}}">
+            <view class="cascade_header">
+                <text class="quxiao" @tap="cancelPick">取消</text>
+                <text class="queren" @tap="confirmPick">确认</text>
+            </view>
+
+            <picker-view value="{{pick_data}}" indicator-style="height: 80rpx;font-size: 38rpx" style="width: 100%; height: 400rpx;" @change="change_pick">
+                <picker-view-column class="pvc">
+                    <view wx:for="{{provinces}}" wx:key='this' style="line-height: 80rpx;text-align:center;">{{item.name}}</view>
+                </picker-view-column>
+                <picker-view-column class="pvc">
+                    <view wx:for="{{cities}}" wx:key='this' style="line-height: 80rpx;text-align:center;">{{item.name}}</view>
+                </picker-view-column>
+                <picker-view-column class="pvc">
+                    <view wx:for="{{counties}}" wx:key='this' style="line-height: 80rpx;text-align:center;">{{item.name}}</view>
+                </picker-view-column>
+            </picker-view>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import regions from '../../utils/regions.js';
+export default class AreaPicker extends wepy.component {
+  data = {
+    provinces: [], // 获取到的所有的省
+    cities: [], // 选择的该省的所有市
+    counties: [], // 选择的该市的所有区县
+    pick_data: [0, 0, 0],
+    animationData: {},
+    show: false
+  };
+
+  setValue(province, city, county) {
+    this.province = province;
+    this.city = city;
+    this.county = county;
+    this.$apply();
+  }
+
+  // 显示选择器
+  showPicker() {
+    this.initAddressPicker();
+    this.initAnimation();
+  }
+
+  // 初始化省市县数据
+  initAddressPicker() {
+    let that = this;
+    regions.forEach(element => {
+      that.provinces.push({
+        name: element.name,
+        code: element.code
+      });
+    });
+
+    this.provinces.some((item, index) => {
+      if (that.province && item.code == that.province.code) {
+        that.pick_data[0] = index;
+        return true;
+      }
+    });
+
+    let rCities = regions[this.pick_data[0]].cities;
+    if (rCities) {
+      rCities.forEach(element => {
+        that.cities.push({
+          name: element.name,
+          code: element.code
+        });
+      });
+
+      // 这里是判断这个选择的省里面，有没有相应的下标为cityCode的市，因为这里的下标是前一次选择后的下标，
+      // 比如之前选择的一个省有10个市，我刚好滑到了第十个市，现在又重新选择了省，但是这个省最多只有5个市，
+      // 但是这时候的cityCode为9，而这里的市根本没有那么多，所以会报错
+      this.cities.some((item, index) => {
+        if (that.city && item.code == that.city.code) {
+          that.pick_data[1] = index;
+          return true;
+        }
+      });
+
+      const rCounties = rCities[this.pick_data[1]].areas;
+      if (rCounties) {
+        // 这里是判断选择的这个市在数据里面有没有区县
+        rCounties.forEach(element => {
+          that.counties.push({
+            name: element.name,
+            code: element.code
+          });
+        });
+        this.counties.some((item, index) => {
+          if (that.county && item.code == that.county.code) {
+            that.pick_data[2] = index;
+            return true;
+          }
+        }); // 这里是判断选择的这个市里有没有下标为areaCode的区县，道理同上面市的选择
+      } else {
+        // 如果这个市里面没有区县，那么把这个市的名字就赋值给areas这个数组
+        this.counties.push(this.cities[this.pick_data[1]]);
+      }
+    } else {
+      // 如果该省级没有市，那么就把省的名字作为市和区的名字
+      this.cities.push(this.provinces[this.pick_data[0]]);
+      this.counties.push(this.provinces[this.pick_data[0]]);
+    }
+
+    this.$apply();
+  }
+
+  initAnimation() {
+    this.fadeAnim = wepy.createAnimation({
+      duration: 500,
+      timingFunction: 'ease'
+    });
+
+    this.showAnim = wepy.createAnimation({
+      duration: 500,
+      timingFunction: 'ease'
+    });
+
+    this.fadeAnim
+      .backgroundColor('#000')
+      .opacity(0.5)
+      .step();
+    this.showAnim.bottom(0 + 'rpx').step();
+    this.show = true;
+    this.animationData = {
+      fadeAnim: this.fadeAnim.export(),
+      showAnim: this.showAnim.export()
+    };
+
+    this.$apply();
+  }
+
+  hidePicker() {
+    this.fadeAnim
+      .backgroundColor('#fff')
+      .opacity(0)
+      .step();
+    this.showAnim.bottom(-600 + 'rpx').step();
+
+    this.show = false;
+    this.animationData = {
+      fadeAnim: this.fadeAnim.export(),
+      showAnim: this.showAnim.export()
+    };
+
+    this.$apply();
+  }
+
+  methods = {
+    cancelPick() {
+      this.hidePicker();
+    },
+    confirmPick() {
+      this.hidePicker();
+      this.province = this.provinces[this.pick_data[0]];
+      this.city = this.cities[this.pick_data[1]];
+      this.county = this.counties[this.pick_data[2]];
+      if (!this.county) {
+        this.county.name = '';
+        this.county.code = '';
+      }
+      this.$emit('updateRecieveAddress', this.province, this.city, this.county);
+      this.$apply();
+    },
+    // 滚动选择的时候触发事件
+    change_pick(e) {
+      let val = e.detail.value;
+      this.cities = regions[val[0]].cities;
+      this.counties = regions[val[0]].cities[val[1]].areas;
+      // 省变化，市区分别选中第一个
+      if (this.pick_data[0] != val[0]) {
+        this.pick_data = [val[0], 0, 0];
+        // 市变化，区选中第一个
+      } else if (this.pick_data[1] != val[1]) {
+        this.pick_data = [val[0], val[1], 0];
+        // 区变化，省市不变
+      } else {
+        this.pick_data = val;
+      }
+      this.$apply();
+    }
+  };
+}
+</script>
+<style lang="less">
+.cascade_box {
+  font-size: 32rpx;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 99999;
+}
+.cascade_hei {
+  width: 100%;
+  height: 100vh;
+  background: #fff;
+  opacity: 0;
+}
+
+.cascade_find {
+  width: 100%;
+  height: 600rpx;
+  position: fixed;
+  bottom: -600rpx;
+  left: 0;
+  background: #fff;
+  z-index: 99999;
+}
+
+.quxiao,
+.queren {
+  display: block;
+  position: absolute;
+  width: 100rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  /*background: #00f;*/
+  text-align: center;
+  color: #0cbb0a;
+}
+
+.quxiao {
+  color: #939393;
+}
+
+.queren {
+  right: 0;
+  top: 0;
+}
+
+.pvc {
+  font-size: 38rpx;
+}
+
+.cascade_header {
+  height: 80rpx;
+  width: 100%;
+  margin-bottom: 20rpx;
+}
+</style>

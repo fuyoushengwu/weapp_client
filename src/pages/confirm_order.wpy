@@ -1,0 +1,771 @@
+<template>
+    <view class="confirm_order">
+
+        <view class="goodsList">
+            <repeat for="{{previeworderItemList}}" key="index" index="index" item="item">
+                <view class="list_box">
+                    <swipeDelete :swipeData="item" @delItem.user="deleteShopItem">
+                        <view class="goods-info">
+                            <view class="img-box">
+                                <image src="{{item.good.coverImg}}" class="img"/>
+                            </view>
+                            <view class="text-box">
+                                <view class="goods-title">{{item.good.name}}</view>
+                                <view class="goods-price">￥ {{item.good.price}}</view>
+                                <view class="buy-num">
+                                    <view class="jian-btn" @tap.stop="decreaseShopItemCount({{index}},{{item.id}})">-</view>
+                                    <input type="number" value="{{item.count}}" disabled/>
+                                    <view class="jia-btn " @tap.stop="increaseShopItemCount({{index}},{{item.id}})">+</view>
+                                </view>
+                            </view>
+                        </view>
+                        <view wx:if="{{item.msg}}">{{item.msg}}</view>
+                    </swipeDelete>
+                </view>
+            </repeat>
+        </view>
+        <view class="spacing"/>
+
+        <view class="order_info">
+            <view class="block">
+                <view class="left">配送方式</view>
+                <picker @change="selectSendtype" range="{{sendtypeArray}}" range-key="name" value="{{sendtype}}">
+                    <view class="right">{{sendtype!=SENDTYPE_UNKNOW?sendtypeArray[sendtype].name:'请选择配送方式'}}</view>
+                </picker>
+            </view>
+            <view class="block" wx:if="{{sendtype==SENDTYPE_PICKUP}}">
+                <view class="left">取货门店</view>
+                <picker @change="selectPickupStore" range="{{pickupStoreArray}}" range-key="name" value="{{pickupStoreValue}}">
+                    <view class="right">{{pickupStoreValue!=-1?pickupStoreArray[pickupStoreValue].name:'请选择取货门店'}}</view>
+                </picker>
+            </view>
+            <view class="block" wx:if="{{sendtype==SENDTYPE_PICKUP}}">
+                <view class="left">取货时间</view>
+                <picker mode="time" @change="selectPickupTime" start="09:00" 
+                    end="21:00" value="{{pickupTimeStr}}">
+                  <view class="right">{{pickupTimeStr!=''?pickupTimeStr:'请设置取货时间'}}</view>
+                </picker>
+            </view>
+            <view class="block" wx:if="{{sendtype==SENDTYPE_OWNSEND||sendtype==SENDTYPE_THIRDSEND}}">
+                <view class="left">收货地址</view>
+                <view @tap="setAddress">
+                  <view class="right" wx:if="{{!is_exist_address}}">请设置收货地址</view>
+                  <view class="right" wx:else>
+                    <view>
+                      <text>{{recieveAddress.reciever}}</text>
+                      <text> {{recieveAddress.phone}}</text>
+                    </view>
+                    <view class="active_address">
+                      <text class="defult" wx:if="{{recieveAddress.def}}"> [默认]</text>
+                      {{recieveAddress.detail}}
+                    </view>
+                  </view>
+                </view>
+            </view>
+
+            <view class="block" wx:if="{{sendtype==SENDTYPE_THIRDSEND}}">
+                <view class="left">快递费:</view>
+                <view class="right input_box">{{sendPrice}}</view>
+            </view>
+
+            <view class="block">
+                <view class="left">买家留言:</view>
+                <view class="right input_box">
+                    <input @input="bindKeyInput" placeholder="对本次交易的说明"/>
+                </view>
+            </view>
+            
+            <view class="spacing"></view>
+            
+            <view class="block">
+              <view class="left total_jf">通用积分 \t可用{{userInfo.score}}\t抵扣{{userInfo.score/100}}元</view>
+              <view class="right"><input type="number" class="dk-jf" @input="jfInput" placeholder="输入抵扣积分"/></view>
+            </view>
+
+            <view class="spacing"></view>
+            
+            <view class="block">
+                <view class="left tongji">商品金额</view>
+                <view>
+                    <view class="right price">+￥{{totalGoodsPrice}}</view>
+                </view>
+            </view>
+            <view class="block" wx:if="{{genericScore>0}}">
+                <view class="left tongji">通用积分</view>
+                <view>
+                    <view class="right price">-￥{{genericScore/100}}</view>
+                </view>
+            </view>
+            <view class="block" wx:if="{{voucher_price>0}}">
+              <view class="left tongji" >专用积分</view>
+              <view>
+                <view class="right price">-￥{{voucher_price}}</view>
+              </view>
+            </view>
+            <view class="block" wx:if="{{sendPrice>0}}">
+              <view class="left tongji" >运费</view>
+              <view>
+                <view class="right price">+￥{{sendPrice}}</view>
+              </view>
+            </view>
+            <view class="block">
+              <view class="left tongji">应付</view>
+              <view>
+                <view class="right price">￥{{totalGoodsPrice-genericScore/100-voucher_price+sendPrice}}</view>
+              </view>
+            </view>
+        </view>
+
+        <view class="pay_box">
+            <form report-submit @submit="submitOrder">
+                <button form-type="submit" class="button type_green">{{orderstatus!=ORDERSTATUS_PREORDER?'确认':'预订'}}</button>
+            </form>
+        </view>
+
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import swipeDelete from '../components/common/swipe-delete';
+import {
+  ADDRESS,
+  SENDTYPE_UNKNOW,
+  SENDTYPE_PICKUP,
+  SENDTYPE_OWNSEND,
+  SENDTYPE_THIRDSEND,
+  ORDERSTATUS_UNKNOW,
+  ORDERSTATUS_PREORDER,
+  ORDERSTATUS_UNSTART
+} from '../utils/constant';
+import GlobalData from '../conf/globalData';
+import util from '../utils/util';
+import previewapi from '../api/previewapi';
+import shoporderapi from '../api/shoporderapi';
+import shopcartapi from '../api/shopcartapi';
+import couponapi from '../api/couponapi';
+import storeapi from '../api/storeapi';
+import tip from '../utils/tip';
+
+export default class ConfirmOrder extends wepy.page {
+  config = {
+    navigationBarTitleText: '确认订单'
+  };
+  data = {
+    SENDTYPE_UNKNOW,
+    SENDTYPE_PICKUP,
+    SENDTYPE_OWNSEND,
+    SENDTYPE_THIRDSEND,
+    ORDERSTATUS_UNKNOW,
+    ORDERSTATUS_PREORDER,
+    ORDERSTATUS_UNSTART,
+
+    previeworderItemList: [],
+    // 卖家留言
+    businessMessage: '',
+    // 订单中商品总价
+    totalGoodsPrice: 0,
+    // 快递费
+    sendPrice: 0,
+    operating: false,
+    // 商品Id
+    goodid: undefined,
+    // 送货方式
+    sendtypeArray: [
+      {
+        name: '到店自取'
+      },
+      {
+        name: '送货上门'
+      },
+      {
+        name: '快递'
+      }
+    ],
+    // 配送方式:0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
+    sendtype: SENDTYPE_UNKNOW,
+
+    // 订单状态:0:预订;1:未开始;2:进行中;3:已完成;4:订单超时
+    orderstatus: ORDERSTATUS_UNKNOW,
+
+    pickupStoreArray: [],
+    pickupStoreValue: -1,
+    pickupStore: undefined,
+
+    pickupTimeStr: '',
+
+    // 是否存在默认地址
+    is_exist_address: false,
+    recieveAddress: undefined,
+
+    // 用户信息
+    userInfo: {},
+    // 用户可用兑换券
+    uservoucherList: [],
+    // 使用的专用积分
+    voucher_price: 0,
+    // 使用的通用积分
+    genericScore: 0
+  };
+
+  components = {
+    swipeDelete
+  };
+
+  onLoad(option) {
+    this.goodid = option.goodid;
+    this.userInfo = GlobalData.getUserInfo();
+  }
+
+  onShow() {
+    this.recieveAddress = wepy.getStorageSync(ADDRESS);
+    if (this.recieveAddress) {
+      wepy.removeStorageSync(ADDRESS);
+      this.is_exist_address = true;
+    } else {
+      this.getOrderDetailInfo();
+    }
+  }
+  async getOrderDetailInfo() {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    let that = this;
+    previewapi.generatePreviewOrder(this.userInfo.id, this.goodid).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        tip.error('订单预览失败,请等待商家修复');
+        return;
+      }
+      let previewOrder = response.data;
+      that.previeworderItemList = previewOrder.orderItemList;
+      that.getUserVoucherList();
+      that.totalGoodsPrice = 0;
+      that.previeworderItemList.forEach(previeworderItem => {
+        if (previeworderItem.good.count == 0) {
+          that.orderstatus = ORDERSTATUS_PREORDER;
+          previeworderItem.msg = '该商品已卖完,需要提前预订';
+        } else if (previeworderItem.count > previeworderItem.good.count) {
+          previeworderItem.count = previeworderItem.good.count;
+          shopcartapi.updateShopCartItemCount(
+            that.userInfo.id,
+            previeworderItem.shopcartItemId,
+            previeworderItem.count
+          );
+          previewapi.updatePreviewOrderItem(
+            that.userInfo.id,
+            previeworderItem.id,
+            {
+              count: previeworderItem.count
+            }
+          );
+          previeworderItem.msg = `该商品只剩${previeworderItem.count}件`;
+        }
+        that.totalGoodsPrice +=
+          previeworderItem.count * previeworderItem.good.price;
+      });
+
+      // that.is_exist_address = false;
+      // that.recieveAddress = previewOrder.defaultAddress;
+      that.$apply();
+    });
+  }
+
+  async getUserVoucherList() {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    let goodids = [];
+    this.previeworderItemList.forEach(previeworderItem => {
+      goodids.push(previeworderItem.good.id);
+    });
+
+    let that = this;
+    couponapi
+      .getUserShopOrderVoucherList(this.userInfo.id, goodids)
+      .then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          return;
+        }
+        let getUserShopOrderVoucherListResponse = response.data;
+        that.uservoucherList = getUserShopOrderVoucherListResponse.voucherList;
+        that.uservoucherList.forEach(element => {
+          that.voucher_price += element.good.price;
+        });
+        that.$apply();
+      });
+  }
+
+  async getPickupOptions() {
+    this.pickupStoreArray = await util.getStoreOrderedByDistance();
+    this.$apply();
+  }
+
+  async deletePreviewGood(previewgood) {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    let json = await previewapi.deletePreviewOrderItem(
+      this.userInfo.id,
+      previewgood.id
+    );
+    let response = json.data || {};
+    if (response.code != 200) {
+      tip.error('无法删除该商品');
+      return;
+    }
+    let retList = [];
+    this.orderstatus = ORDERSTATUS_UNKNOW;
+    this.previeworderItemList.forEach(previeworderItem => {
+      if (previeworderItem.id == previewgood.id) {
+        this.totalGoodsPrice -=
+          previeworderItem.count * previeworderItem.good.price;
+      } else {
+        retList.push(previeworderItem);
+        if (previeworderItem.good.count == 0) {
+          this.orderstatus = ORDERSTATUS_PREORDER;
+          previeworderItem.msg = '该商品已卖完,需要提前预订';
+        }
+      }
+    });
+    this.previeworderItemList = retList;
+    this.$apply();
+  }
+
+  async decreaseShopCartCount(index, previewgoodid, count) {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    let json = await previewapi.updatePreviewOrderItem(
+      this.userInfo.id,
+      previewgoodid,
+      {
+        count: count
+      }
+    );
+    let response = json.data || {};
+    if (response.code == 200) {
+      // 购物车数据
+      this.previeworderItemList[index].count = count;
+      this.totalGoodsPrice =
+        this.totalGoodsPrice - this.previeworderItemList[index].good.price;
+    }
+    this.operating = false;
+    this.$apply();
+  }
+  async increaseShopCartCount(index, previewgoodid, count) {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    let json = await previewapi.updatePreviewOrderItem(
+      this.userInfo.id,
+      previewgoodid,
+      {
+        count: count
+      }
+    );
+    let response = json.data || {};
+    if (response.code == 200) {
+      // 购物车数据
+      this.previeworderItemList[index].count = count;
+      this.totalGoodsPrice =
+        this.totalGoodsPrice + this.previeworderItemList[index].good.price;
+    }
+    this.operating = false;
+    this.$apply();
+  }
+
+  async doSubmitOrder(formid) {
+    if (!this.userInfo) {
+      tip.error('用户只有登录才能购买商品');
+      return;
+    }
+    tip.loading('提交订单中');
+    let submitRequest = { sendtype: this.sendtype };
+    // 上门自取的方式
+    if (this.sendtype == SENDTYPE_PICKUP) {
+      submitRequest.addressid = this.pickupStore.storeAddress.id;
+      submitRequest.pickupTime = this.pickupTime;
+      submitRequest.storeid = this.pickupStore.id;
+    } else if (this.sendtype == SENDTYPE_OWNSEND) {
+      submitRequest.addressid = this.recieveAddress.id;
+    } else if (this.sendtype == SENDTYPE_THIRDSEND) {
+      submitRequest.addressid = this.recieveAddress.id;
+    }
+    submitRequest.businessMessage = this.businessMessage;
+    submitRequest.formid = formid;
+
+    if (this.orderstatus == ORDERSTATUS_PREORDER) {
+      submitRequest.status = ORDERSTATUS_PREORDER;
+    } else {
+      submitRequest.status = ORDERSTATUS_UNSTART;
+    }
+
+    submitRequest.jfNum = this.genericScore;
+
+    let json = await shoporderapi.saveShopOrder(
+      this.userInfo.id,
+      submitRequest
+    );
+    let response = json.data || {};
+    if (response.code == 200) {
+      tip.alert('订单提交成功');
+      wepy.redirectTo({
+        url: `/pages/shoporder?sendtype=${submitRequest.sendtype}&orderstatus=${
+          submitRequest.status
+        }`
+      });
+    } else {
+      tip.error('提交订单失败');
+    }
+  }
+
+  methods = {
+    selectSendtype(e) {
+      this.sendtype = e.detail.value;
+      switch (this.sendtype) {
+        case SENDTYPE_PICKUP:
+          // 到店自取
+          this.getPickupOptions();
+          break;
+        case SENDTYPE_OWNSEND:
+          // 送货上门
+          break;
+        case SENDTYPE_THIRDSEND:
+          // 快递
+          break;
+      }
+    },
+    selectPickupStore(e) {
+      this.pickupStoreValue = e.detail.value;
+      this.pickupStore = this.pickupStoreArray[this.pickupStoreValue];
+    },
+    selectPickupTime(e) {
+      let tmp = e.detail.value;
+      let pickupHour = parseInt(tmp.split(':')[0]);
+      let pickupMinute = parseInt(tmp.split(':')[1]);
+      let pickupTime = new Date();
+      pickupTime.setHours(pickupHour);
+      pickupTime.setMinutes(pickupMinute);
+
+      let startTime = new Date();
+      startTime.setHours(9);
+      startTime.setMinutes(0);
+
+      let endTime = new Date();
+      endTime.setHours(21);
+      endTime.setMinutes(0);
+
+      if (pickupTime < startTime || pickupTime > endTime) {
+        tip.confirm('请设置取货时间为:09:00~21:00');
+        return;
+      }
+
+      let now = new Date();
+      if (pickupTime < now) {
+        tip.confirm(`请在明天${tmp}取货`);
+        pickupTime.setDate(pickupTime.getDate() + 1);
+      }
+      this.pickupTimeStr = tmp;
+      this.pickupTime = pickupTime;
+    },
+    setAddress() {
+      wepy.navigateTo({
+        url: '/pages/address?type=previeworder'
+      });
+    },
+    async submitOrder(e) {
+      let formid = e.detail.formId;
+      switch (this.sendtype) {
+        case SENDTYPE_PICKUP:
+          /* 验证上门取货的条件:
+           * 1.要有取货地址
+           * 2.要有取货时间
+           */
+          if (this.pickupStore == undefined || this.pickupTime == undefined) {
+            await tip.confirm('到店自取方式，需要提供门店和取货时间信息');
+            return false;
+          }
+          break;
+        case SENDTYPE_OWNSEND:
+          /* 验证送货上门的条件:
+           * 1.要有收货地址
+           * 2.收货地址和用户要在一个市
+           */
+          if (!this.is_exist_address) {
+            await tip.confirm('你未设置收货地址，请设置地址');
+            wepy.navigateTo({
+              url: '/pages/address?type=previeworder'
+            });
+            return false;
+          }
+          let json = await storeapi.getStoresCity();
+          let response = json.data || {};
+          if (response.code == 200) {
+            if (response.data.indexOf(this.recieveAddress.city.name) >= 0) {
+              break;
+            }
+          }
+          await tip.confirm('你所在的区域目前不支持送货上门');
+          return false;
+
+        case SENDTYPE_THIRDSEND:
+          /** 验证快递的条件:
+           *  1.要有收货地址
+           */
+          if (!this.is_exist_address) {
+            await tip.confirm('你未设置收货地址，请设置地址');
+            wepy.navigateTo({
+              url: '/pages/address?type=previeworder'
+            });
+            return false;
+          }
+          break;
+        default:
+          await tip.confirm('确认订单前,请先先选择配送方式');
+          return false;
+      }
+
+      this.doSubmitOrder(formid);
+    },
+    bindKeyInput(e) {
+      this.businessMessage = e.detail.value;
+    },
+    deleteShopItem(previewgood) {
+      this.deletePreviewGood(previewgood);
+    },
+    decreaseShopItemCount(index, previewgoodid) {
+      if (this.operating) {
+        return;
+      }
+      this.operating = true;
+      let count = this.previeworderItemList[index].count;
+      if (count > 1) {
+        count--;
+        this.decreaseShopCartCount(index, previewgoodid, count);
+      } else {
+        this.operating = false;
+      }
+    },
+    increaseShopItemCount(index, previewgoodid) {
+      if (this.operating) {
+        return;
+      }
+      this.operating = true;
+      let count = this.previeworderItemList[index].count;
+      let remainCount = this.previeworderItemList[index].good.count;
+
+      if (count < remainCount) {
+        count++;
+        this.increaseShopCartCount(index, previewgoodid, count);
+      } else if (remainCount == 0) {
+        count++;
+        this.increaseShopCartCount(index, previewgoodid, count);
+      } else {
+        this.operating = false;
+      }
+    },
+    jfInput(e) {
+      let num = e.detail.value * 10 / 10;
+      let reg = /^[0-9]+$/;
+      if (!reg.test(num)) {
+        tip.error('输入类型有误');
+        this.genericScore = '';
+        return {
+          value: ''
+        };
+      }
+      if (num > this.userInfo.score) {
+        tip.error('积分不足');
+        return {
+          value: ''
+        };
+      } else {
+        this.genericScore = num;
+      }
+      return {
+        value: this.genericScore
+      };
+    }
+  };
+
+  watch = {
+    sendtype(newValue) {
+      if (this.sendtype == newValue) {
+        return;
+      }
+      // 如果配送方式是快递，需要额外支付快递费
+      if (newValue == SENDTYPE_THIRDSEND) {
+        this.sendPrice = 10;
+        this.$apply();
+      }
+    }
+  };
+}
+</script>
+<style lang="less">
+.order_info {
+  .block {
+    display: flex;
+    justify-content: space-between;
+    height: 91rpx;
+    align-items: center;
+    padding: 0rpx 35rpx;
+    border-bottom: 1px solid #efefef;
+    background: #fff;
+    .txt {
+      font-size: 32rpx;
+    }
+    .left {
+      color: #000;
+    }
+    .right {
+      color: #9a9a9a;
+      text-align: right;
+    }
+    .price {
+      color: #ea4a3a;
+      font-size: 32rpx;
+    }
+    .tongji {
+      font-size: 32rpx;
+    }
+    .input_box {
+      flex: 1;
+      margin-left: 20rpx;
+    }
+    .total_jf {
+      font-size: 32rpx;
+    }
+
+    .active_address {
+      margin-top: 20rpx;
+    }
+    .defult {
+      color: #ea4a3a;
+    }
+  }
+}
+.list_box {
+  height: 250rpx;
+}
+
+.goods-info {
+  border-bottom: 1px solid #eee;
+  display: flex;
+  padding: 20rpx;
+  box-sizing: border-box;
+  position: relative;
+  background: #fff;
+}
+
+.goods-info .img-box {
+  width: 160rpx;
+  height: 160rpx;
+  overflow: hidden;
+  margin-right: 28rpx;
+  background-color: #d8d8d8;
+}
+
+.goods-info .text-box {
+  width: 480rpx;
+}
+
+.goods-info .text-box .goods-title {
+  font-size: 32rpx;
+  color: #414141;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  padding: 10rpx 20rpx 5rpx 0;
+}
+
+.goods-info .text-box .goods-label {
+  font-size: 26rpx;
+  color: #999;
+  height: 38rpx;
+  line-height: 38rpx;
+  margin: 8rpx 0 25rpx 0;
+}
+
+.goods-info .text-box .goods-price {
+  font-size: 34rpx;
+  color: #e64340;
+}
+
+.goods-info .text-box .buy-num {
+  width: 164rpx;
+  height: 48rpx;
+  line-height: 48rpx;
+  position: absolute;
+  right: 30rpx;
+  bottom: 30rpx;
+  display: flex;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.goods-info .text-box .buy-num .jian-btn {
+  width: 48rpx;
+  height: 100%;
+  border-left: 1rpx solid #ccc;
+  border-bottom: 1rpx solid #ccc;
+  border-top: 1rpx solid #ccc;
+  border-bottom-left-radius: 6rpx;
+  border-top-left-radius: 6rpx;
+}
+
+.goods-info .text-box .buy-num .jian-btn.disabled {
+  background-color: #f5f5f9;
+  border-left: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
+  border-top: 1rpx solid #eee;
+  color: #ccc;
+}
+
+.goods-info .text-box .buy-num .jia-btn {
+  width: 48rpx;
+  height: 100%;
+  border-right: 1rpx solid #ccc;
+  border-bottom: 1rpx solid #ccc;
+  border-top: 1rpx solid #ccc;
+  border-bottom-right-radius: 6rpx;
+  border-top-right-radius: 6rpx;
+}
+
+.goods-info .text-box .buy-num .jia-btn.disabled {
+  background-color: #f5f5f9;
+  border-right: 1rpx solid #eee;
+  border-bottom: 1rpx solid #eee;
+  border-top: 1rpx solid #eee;
+  color: #ccc;
+}
+
+.goods-info .text-box .buy-num input {
+  width: 68rpx;
+  height: 48rpx;
+  min-height: 48rpx;
+  text-align: center;
+  font-size: 24rpx;
+  border: 1rpx solid #ccc;
+}
+
+.goods-info .img-box .img {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.pay_box {
+  margin-top: 104rpx;
+  padding: 0 22rpx;
+}
+.dk-jf {
+  text-align: right;
+  color: #666;
+}
+</style>

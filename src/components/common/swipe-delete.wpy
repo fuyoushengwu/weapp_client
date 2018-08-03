@@ -1,0 +1,131 @@
+<template>
+    <view class="swipe-item-wrapper">
+        <view class="swipe-content" style="left:{{swipeData.style==0||swipeData.style==undefined?'0':swipeData.style+'rpx'}}"
+            @touchstart="touchstart" @touchmove="touchmove" @touchend="touchend">
+            <slot/>
+        </view>
+        <view class="swipe-actions actions-right">
+            <view class="swipe-btn del" @tap.stop="handleDelete({{swipeData}})">删除</view>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+export default class SwipeDelete extends wepy.component {
+  props = {
+    swipeData: {
+      type: Object,
+      default: {}
+    }
+  };
+  data = {
+    startX: null,
+    moveX: null
+  };
+
+  onLoad() {
+    if (this.swipeData) {
+      this.swipeData.style = 0;
+    }
+  }
+  methods = {
+    handleDelete(data) {
+      let item = JSON.parse(JSON.stringify(data));
+      this.$emit('delItem', item);
+    },
+    touchstart(e) {
+      if (e.touches.length === 1) {
+        this.startX = e.touches[0].clientX;
+        this.moveX = e.touches[0].clientX;
+      }
+    },
+    touchmove(e) {
+      if (e.touches.length === 1) {
+        let distanceX = this.moveX - e.touches[0].clientX;
+        this.moveX = e.touches[0].clientX;
+
+        let actualStyle = this.swipeData.style - distanceX;
+        if (actualStyle < -140) {
+          this.swipeData.style = -140;
+        } else if (actualStyle > 0) {
+          this.swipeData.style = 0;
+        } else {
+          this.swipeData.style = actualStyle;
+        }
+        this.setData({
+          swipeData: this.props.swipeData
+        });
+      }
+    },
+    touchend(e) {
+      if (e.changedTouches.length === 1) {
+        if (this.swipeData.style <= -70) {
+          this.swipeData.style = -140;
+        } else {
+          this.swipeData.style = 0;
+        }
+        this.setData({
+          swipeData: this.props.swipeData
+        });
+      }
+    }
+  };
+}
+</script>
+<style lang="less">
+.swipe-item-wrapper {
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  margin-top: 2rpx;
+  .swipe-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 140rpx;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    &.actions-left {
+      left: 0;
+    }
+    &.actions-right {
+      right: 0;
+    }
+  }
+  .swipe-content {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    padding: 0 18rpx;
+    background-color: white;
+    .swipe-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 30rpx;
+      color: #666;
+    }
+  }
+  .swipe-btn {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    color: white;
+    &.del {
+      background-color: rgb(244, 51, 60);
+    }
+    &.edit {
+      background-color: rgb(16, 142, 233);
+    }
+  }
+}
+</style>

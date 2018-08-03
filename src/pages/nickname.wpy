@@ -1,0 +1,77 @@
+<template>
+    <form @submit="formSubmit">
+        <view class="section">
+            <view class="section_title">昵称</view>
+            <input name="nickname" placeholder="{{nickname}}" focus="true"/>
+        </view>
+
+        <view class="btn_confirm">
+            <button class="button type_yellow" formType="submit">保存</button>
+        </view>
+    </form>
+</template>
+<script>
+import wepy from 'wepy';
+import tip from '../utils/tip';
+import userapi from '../api/userapi';
+import GlobalData from '../conf/globalData';
+export default class NickName extends wepy.page {
+  config = {
+    navigationBarTitleText: '昵称'
+  };
+
+  data = {
+    nickname: ''
+  };
+
+  onLoad() {
+    this.nickname = GlobalData.getNickName() || '设置个性昵称';
+  }
+
+  async updateNickname(nickname) {
+    let userInfo = GlobalData.getUserInfo();
+    userInfo.nickname = nickname;
+    userapi.updateUser(GlobalData.getUserId(), userInfo).then(res => {
+      let response = res.data || {};
+      if (response.code == 200) {
+        GlobalData.setUserInfo(response.data);
+        tip.success('设置昵称成功', 2000);
+      } else {
+        tip.error('设置昵称失败');
+      }
+    });
+    wepy.navigateBack({
+      delta: 1
+    });
+  }
+
+  methods = {
+    formSubmit(e) {
+      let nickname = e.detail.value.nickname;
+      if (nickname == '') {
+        tip.alert('请设置昵称');
+        return false;
+      }
+      this.updateNickname(nickname);
+    }
+  };
+}
+</script>
+<style lang="less">
+.section {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  border-bottom: 1px solid #dbdbdb;
+  background: #fff;
+  .section_title {
+    color: #1a1a1a;
+    padding-right: 75rpx;
+  }
+}
+
+.btn_confirm {
+  margin-top: 64rpx;
+  padding: 0 24rpx;
+}
+</style>

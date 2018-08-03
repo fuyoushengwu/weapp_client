@@ -1,0 +1,102 @@
+<template>
+  <view>
+      <scroll-view scroll-y="true">
+          <view class="list_block">
+              <view class="item_block">
+                <view class="title">昵称</view>
+                <navigator class="item_content" url="/pages/nickname">{{nickname}} &gt;</navigator>
+              </view>
+              <view class="item_block">
+                <view class="title">我的手机</view>
+                <navigator class="item_content" url="/pages/phone">{{phone}} &gt;</navigator>
+              </view>
+              <view class="item_block">
+                <view class="title">收货地址</view>
+                  <navigator class="item_content" url="/pages/address">{{recieveAddress.detail}}  &gt;</navigator>
+              </view>
+          </view>
+      </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import GlobalData from '../conf/globalData';
+import userapi from '../api/userapi';
+export default class Setting extends wepy.page {
+  config = {
+    navigationBarTitleText: '设置'
+  };
+
+  data = {
+    nickname: '',
+    hasNickname: false,
+    phone: '',
+    hasPhone: false,
+    recieveAddress: {},
+    hasAddress: false
+  };
+
+  onShow() {
+    this.nickname = GlobalData.getNickName();
+    if (this.nickname) {
+      this.hasNickname = true;
+    } else {
+      this.nickname = '请注册用户名';
+      this.hasNickname = false;
+    }
+    this.phone = GlobalData.getPhone();
+
+    if (this.phone) {
+      this.hasPhone = true;
+    } else {
+      this.phone = '请绑定电话';
+      this.hasPhone = false;
+    }
+    let that = this;
+    userapi.getUserRecieveAddressList(GlobalData.getUserId()).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
+      let recieveAddressList = response.data;
+      if (recieveAddressList && recieveAddressList.length > 0) {
+        this.recieveAddress = recieveAddressList[0];
+        recieveAddressList.forEach(element => {
+          if (element.def) {
+            that.recieveAddress = element;
+          }
+        });
+        this.hasAddress = true;
+      } else {
+        that.recieveAddress = { detail: '请绑定收货地址' };
+        that.hasAddress = false;
+      }
+      that.$apply();
+    });
+  }
+}
+</script>
+<style lang="less">
+.list_block {
+  padding-top: 20rpx;
+
+  .item_block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40rpx 25rpx;
+    border-bottom: 1px solid #f7f7f7;
+    background: #fff;
+
+    .title {
+      color: #808080;
+      font-size: 32rpx;
+    }
+
+    .item_content {
+      font-size: 32rpx;
+      color: #333333;
+    }
+  }
+}
+</style>

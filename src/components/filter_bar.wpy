@@ -1,0 +1,172 @@
+<template>
+<view class="bar">
+    <view class="filter">
+        <view class="nav {{orderType=='salecount'?'nav_active':''}}" @tap="order('salecount')">销量</view>
+        <view class="nav grid">
+            <view class="price {{orderType=='price'?'nav_active':''}}" @tap.stop="order('price')">价格</view>
+            <view>
+                <view class="arrow_up {{arrowType=='asc'?'arrow_up_red':'arrow_up_gray'}}"></view>
+                <view class="arrow_down {{arrowType=='desc'?'arrow_down_red':'arrow_down_gray'}}"></view>
+            </view>
+        </view>
+        <view class="nav" @tap="filterGood">筛选<i class="iconfont icon-filter"/></view>
+    </view>
+     <!--筛选测栏-->
+    <filterSlider :packArray.sync="packArray" :levelArray.sync="levelArray"/>
+</view>
+</template>
+<script>
+import wepy from 'wepy';
+import FilterSlider from '../components/filterSlider';
+export default class filterBar extends wepy.component {
+  data = {
+    // pack:按单位过滤
+    packFilter: [],
+    // pack:按阶段过滤
+    levelFilter: [],
+    // 排序类型: salecount:销量；price:价格
+    orderType: '',
+    // 排序方向: desc:递降；asc:递增
+    orderValue: '',
+
+    // 价格排序中的箭头方向(向上:表示价格增序排列;向下:表示价格降序排列)
+    arrowType: '',
+    // 产品的单位
+    packArray: [],
+    // 产品的阶段
+    levelArray: [],
+    // 组件加载完成
+    loadded: false
+  };
+
+  components = {
+    filterSlider: FilterSlider
+  };
+
+  props = {
+    goods: []
+  };
+
+  methods = {
+    filterGood() {
+      this.$invoke('filterSlider', 'triggerDisplay');
+    },
+    order(orderType) {
+      if (orderType == 'price') {
+        this.orderType = orderType;
+        if (this.arrowType == '' || this.arrowType == 'asc') {
+          this.arrowType = 'desc';
+          this.orderValue = 'desc';
+        } else {
+          this.arrowType = 'asc';
+          this.orderValue = 'asc';
+        }
+        this.refresh();
+      } else {
+        if (this.orderType != orderType) {
+          this.orderType = orderType;
+          this.arrowType = '';
+          this.orderValue = 'desc';
+          this.refresh();
+        }
+      }
+    }
+  };
+
+  watch = {
+    goods(newValue) {
+      if (!this.loadded) {
+        this.packArray = [];
+        this.levelArray = [];
+        let that = this;
+        this.goods.forEach(function(item, index) {
+          if (that.packArray.indexOf(item.pack) < 0) {
+            that.packArray.push(item.pack);
+          }
+          if (that.levelArray.indexOf(item.level) < 0) {
+            that.levelArray.push(item.level);
+          }
+        });
+        this.loadded = true;
+      }
+    }
+  };
+
+  events = {
+    refreshFilter(filterOption) {
+      this.packFilter = filterOption.packFilter;
+      this.levelFilter = filterOption.levelFilter;
+      this.refresh();
+    }
+  };
+
+  refresh() {
+    this.$emit('refresh', {
+      packFilter: this.packFilter,
+      levelFilter: this.levelFilter,
+      orderType: this.orderType,
+      orderValue: this.orderValue
+    });
+  }
+}
+</script>
+<style lang="less">
+.filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  .nav {
+    color: #000000;
+    font-size: 26rpx;
+    padding: 12px 20px;
+  }
+  .nav_active {
+    color: #f03939;
+  }
+  .icon-filter {
+    font-size: 26rpx;
+    color: #666;
+    margin-left: 5rpx;
+  }
+}
+.price {
+  color: #000000;
+  font-size: 26rpx;
+}
+.grid {
+  display: flex;
+  align-items: center;
+}
+/*向上*/
+.arrow_up_red {
+  border-color: transparent transparent #f03939;
+}
+.arrow_down_red {
+  border-color: #f03939 transparent transparent;
+}
+.arrow_up_gray {
+  border-color: transparent transparent #ccc;
+}
+.arrow_down_gray {
+  border-color: #ccc transparent transparent;
+}
+.arrow_up {
+  width: 0;
+  height: 0;
+  border-width: 0 10rpx 10rpx;
+  border-style: solid;
+  margin: 9rpx 10rpx;
+  position: relative;
+}
+/*向下*/
+.arrow_down {
+  width: 0;
+  height: 0;
+  border-width: 10rpx 10rpx 0;
+  border-style: solid;
+  /*灰 透明 透明 */
+  margin: 9rpx 10rpx;
+  position: relative;
+}
+</style>

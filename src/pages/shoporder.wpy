@@ -1,0 +1,259 @@
+<template>
+    <view class="swiper-tab-pd">
+        <tab @currentTab.user="updateCurrentTab" :tabList.sync="tabList" :currentTab.sync="currentTab"/>
+    </view>
+    <scroll-view scroll-y="true" class="swiper-item-box" style="height;{{winHeight-31}}px">
+      <orderItem :shoporderList.sync="shoporderList"></orderItem>
+      <!--加载更多时动画-->
+      <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+      <!--暂无数据显示-->
+      <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
+    </scroll-view>
+</template>
+<script>
+import wepy from 'wepy';
+import Tab from '../components/tab';
+import OrderItem from '../components/order_item';
+import BottomLoadMore from '../components/common/bottomLoadMore';
+import Placeholder from '../components/common/placeholder';
+import {
+  SYSTEM_INFO,
+  SENDTYPE_UNKNOW,
+  SHOPORDER_ID,
+  ADDRESS,
+  SENDTYPE_PICKUP,
+  SENDTYPE_OWNSEND,
+  SENDTYPE_THIRDSEND,
+  ORDERSTATUS_PREORDER,
+  ORDERSTATUS_UNSTART,
+  ORDERSTATUS_DOING,
+  ORDERSTATUS_FINISHED
+} from '../utils/constant';
+import GlobalData from '../conf/globalData';
+import shoporderapi from '../api/shoporderapi';
+import tip from '../utils/tip';
+export default class Order extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的订单',
+    enablePullDownRefresh: true
+  };
+
+  data = {
+    winHeight: 0,
+    tabList: [
+      { name: '待收货', dotNum: 0 },
+      { name: '待取货', dotNum: 0 },
+      { name: '预订中', dotNum: 0 },
+      { name: '已完成', dotNum: 0 }
+    ],
+    shoporderList: [],
+
+    currentTab: 0,
+    // 订单的配送方式:  0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
+    sendtypeList: [],
+    // 订单状态:0:预订;1:未开始;2:进行中;3:已完成;4:订单超时
+    orderstatusList: [],
+    totalpage: 1,
+    currentpage: 0,
+    pagesize: 5,
+    showLoading: true,
+    is_empty: true,
+    // 防止重复加载
+    inRequesting: false
+  };
+
+  components = {
+    tab: Tab,
+    orderItem: OrderItem,
+    bottomLoadMore: BottomLoadMore,
+    placeholder: Placeholder
+  };
+
+  onLoad(opts) {
+    // 设置滚动高度
+    let systemInfo = wepy.getStorageSync(SYSTEM_INFO);
+    this.winHeight = systemInfo.windowHeight;
+
+    if (opts.orderstatus == ORDERSTATUS_PREORDER) {
+      this.currentTab = 2;
+      return;
+    }
+    switch (opts.sendtype) {
+      case SENDTYPE_PICKUP:
+        this.currentTab = 1;
+        break;
+      case SENDTYPE_OWNSEND:
+      case SENDTYPE_THIRDSEND:
+      default:
+        this.currentTab = 0;
+        break;
+    }
+  }
+
+  onShow() {
+    // 处理订单还未处理前修改地址的逻辑
+    let recieveAddress = wepy.getStorageSync(ADDRESS);
+    let shoporderid = wepy.getStorageSync(SHOPORDER_ID);
+    if (shoporderid && recieveAddress) {
+      this.shoporderList.forEach(shoporder => {
+        if (shoporder.id == shoporderid) {
+          shoporder.recieveAddress = recieveAddress;
+        }
+      });
+    }
+  }
+
+  onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    this.shoporderList = [];
+    this.is_empty = true;
+    this.showLoading = true;
+    this.currentpage = 0;
+    this.totalpage = 1;
+    this.loadUserShopOrder();
+  }
+
+  onReachBottom() {
+    this.showLoading = true;
+    this.loadUserShopOrder();
+  }
+
+  async loadUserShopOrder() {
+    if (this.currentpage >= this.totalpage) {
+      this.showLoading = false;
+      wx.hideNavigationBarLoading();
+      tip.success('已经到底啦');
+      return;
+    }
+    if (this.inRequesting) {
+      return;
+    }
+    this.inRequest = true;
+    this.currentpage += 1;
+    let that = this;
+    shoporderapi
+      .getUserShopOrderList(
+        GlobalData.getUseId(),
+        this.orderstatusList,
+        this.sendtypeList,
+        this.currentpage,
+        this.pagesize
+      )
+      .then(res => {
+        that.showLoading = false;
+        that.inRequesting = false;
+        wx.hideNavigationBarLoading();
+        let response = res.data || {};
+        if (response.code != 200) {
+          return;
+        }
+        let getUserShopOrderListResponse = response.data;
+        that.currentpage = getUserShopOrderListResponse.currentpage;
+        that.totalpage = getUserShopOrderListResponse.totalpage;
+        that.shoporderList = [
+          ...that.shoporderList,
+          ...getUserShopOrderListResponse.dataList
+        ];
+        if (that.shoporderList.length != 0) {
+          that.is_empty = false;
+        } else {
+          that.is_empty = true;
+        }
+
+        that.$apply();
+      });
+    this.loadShopOrderCount();
+  }
+
+  async loadShopOrderCount() {
+    let that = this;
+    shoporderapi
+      .getUserShopOrderStatusCount(GlobalData.getUseId())
+      .then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          return;
+        }
+        // 待收货
+        that.tobeReceiveCount = response.data.tobeReceiveCount;
+        // 待取货
+        that.tobePickUpCount = response.data.tobePickUpCount;
+        // 预订中
+        that.inOrderingCount = response.data.inOrderingCount;
+        // 已完成
+        that.finishedCount = response.data.finishedCount;
+        that.tabList = [
+          { name: '待收货', dotNum: that.tobeReceiveCount },
+          { name: '待取货', dotNum: that.tobePickUpCount },
+          { name: '预订中', dotNum: that.inOrderingCount },
+          { name: '已完成', dotNum: that.finishedCount }
+        ];
+        that.$apply();
+      });
+  }
+
+  methods = {
+    updateCurrentTab(cur) {
+      this.currentTab = cur;
+    }
+  };
+
+  events = {
+    refreshShopOrderCount() {
+      this.loadShopOrderCount();
+    }
+  };
+
+  watch = {
+    currentTab(newValue) {
+      if (this.currentTab == newValue) {
+        return;
+      }
+      switch (newValue) {
+        case 0:
+          this.sendtypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
+          this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
+          break;
+        case 1:
+          this.sendtypeList = [SENDTYPE_PICKUP];
+          this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
+          break;
+        case 2:
+          this.sendtypeList = [
+            SENDTYPE_UNKNOW,
+            SENDTYPE_PICKUP,
+            SENDTYPE_OWNSEND,
+            SENDTYPE_THIRDSEND
+          ];
+          this.orderstatusList = [ORDERSTATUS_PREORDER];
+          break;
+        case 3:
+          this.sendtypeList = [
+            SENDTYPE_UNKNOW,
+            SENDTYPE_PICKUP,
+            SENDTYPE_OWNSEND,
+            SENDTYPE_THIRDSEND
+          ];
+          this.orderstatusList = [ORDERSTATUS_FINISHED];
+          break;
+        default:
+          this.sendtypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
+          this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
+          break;
+      }
+      this.onPullDownRefresh();
+    }
+  };
+}
+</script>
+<style lang="less">
+.swiper-tab-pd {
+  padding: 0 30rpx;
+  background: #fff;
+}
+
+.swiper-tab-order.active {
+  color: #ff4856;
+  border-bottom: 5rpx solid #ff4856;
+}
+</style>

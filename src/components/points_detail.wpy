@@ -1,0 +1,123 @@
+<template>
+ <view class="detai-content">
+    <view wx:for="{{uservoucherList}}" wx:key="item">
+      <view class="detai-list" @tap.stop="openVoucherItem({{index}})">
+        <view class="detai-left">
+          <view class="detai-name">{{item.goodVoucher.name}}</view>
+        </view>
+        <view class="detail-right">
+          <span class="detail-money">+{{item.score}}</span>
+        </view>
+        <view class="detail-right">
+          <i  class="iconfont icon-up" wx:if="{{item.showVoucherItem}}"></i>
+          <i  class="iconfont icon-down" wx:else></i>
+        </view>
+      </view>
+      <view class="detai-list" wx:if="{{item.showVoucherItem}}" wx:for="{{item.goodVoucher.voucheritemList}}" wx:for-item="voucherItem"  
+            wx:for-index="voucherItemIndex" wx:key="voucherItem" @tap.stop="gotoGood({{index}},{{voucherItemIndex}})">
+        <view class="detai-left">
+          <view class="detai-name">{{voucherItem.name}}</view>
+        </view>
+        <view class="detail-right">
+          <span class="detail-money">{{item.score}}/{{voucherItem.score}}</span>
+        </view>
+      </view>
+    </view>
+  </view>
+  <placeholder :show.sync="is_empty" message="暂无积分数据"></placeholder>
+</template>
+<script>
+import wepy from 'wepy';
+import Placeholder from './common/placeholder';
+import couponapi from '../api/couponapi';
+import tip from '../utils/tip';
+export default class PointsDetail extends wepy.component {
+  props = {
+    uservoucherList: []
+  };
+  data = {
+    is_empty: true
+  };
+  components = {
+    placeholder: Placeholder
+  };
+  watch = {
+    uservoucherList(newVal) {
+      if (!newVal || newVal.length == 0) {
+        this.is_empty = true;
+        return;
+      }
+      this.is_empty = false;
+      newVal.forEach(uservoucher => {
+        if (
+          !uservoucher.goodVoucher ||
+          !uservoucher.goodVoucher.voucheritemIdList
+        ) {
+          return;
+        }
+        let that = this;
+        uservoucher.goodVoucher.voucheritemList = [];
+        let voucheritemIdList = uservoucher.goodVoucher.voucheritemIdList;
+        voucheritemIdList.forEach(voucheritemId => {
+          couponapi.getVoucherItem(voucheritemId).then(res => {
+            let response = res.data || {};
+            if (response.code == 200) {
+              uservoucher.goodVoucher.voucheritemList.push(response.data);
+              that.$apply();
+            }
+          });
+        });
+      });
+      this.uservoucherList = newVal;
+    }
+  };
+  methods = {
+    openVoucherItem(index) {
+      this.uservoucherList[index].showVoucherItem = !this.uservoucherList[index]
+        .showVoucherItem;
+    },
+    gotoGood(userVoucherIndex, voucherItemIndex) {
+      let userVoucher = this.uservoucherList[userVoucherIndex];
+      let voucherItem =
+        userVoucher.goodVoucher.voucheritemList[voucherItemIndex];
+      if (userVoucher.score >= voucherItem.score) {
+        let goodid = voucherItem.goodid;
+        wepy.navigateTo({
+          url: '/pages/good_detail?goodid=' + goodid
+        });
+      } else {
+        tip.alert(
+          '您还差' +
+            (voucherItem.score - userVoucher.score) +
+            '专用积分才能兑换礼品'
+        );
+      }
+    }
+  };
+}
+</script>
+<style lang="less">
+.detai-content {
+  background: #fff;
+  margin-top: 10rpx;
+}
+
+.detai-list {
+  align-items: center;
+  border-bottom: 1px solid #efefef;
+  display: flex;
+  height: 150rpx;
+  justify-content: space-between;
+  margin: 0 40rpx;
+}
+
+.detail-right {
+  text-align: right;
+}
+
+.detail-money {
+  color: #eb6623;
+  display: block;
+  font-size: 40rpx;
+}
+</style>

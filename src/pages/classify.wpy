@@ -1,0 +1,193 @@
+<template>
+    <view class="top_search">
+      <view class="search_read_only">
+        <navigator class="search_content" url="/pages/search">
+          <i class="iconfont icon-search"></i>
+          <view class="search_input">搜索商品</view>
+        </navigator>
+      </view>
+    </view>
+
+    <view class="classify" style="height:{{windowHeight-50}}px">
+        <scroll-view class="classify_catetory" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
+          <view class="name {{item.active? 'active':''}}" wx:for="{{topClassifyList}}" wx:key="item" @tap="changeTopClassify({{item.id}})">
+              {{item.name}}
+          </view>
+        </scroll-view>
+        <scroll-view class="classify_detail" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
+          <view class="children">
+            <navigator hover-class="none" class="children_item" url="/pages/search?topClassifyid={{curTopClassifyid}}&title=所有商品">
+              <image class="child_image" src="../images/all_goods.png"></image>
+              <view class="child_name">所有</view>
+            </navigator>
+
+            <navigator hover-class="none" class="children_item" wx:for="{{subClassifyList}}" wx:for-item="item" wx:key="id" 
+                url="/pages/search?classifyid={{item.id}}&title={{item.name}}">
+              <image class="child_image" src="{{item.coverImg}}"></image>
+              <view class="child_name">{{item.name}}</view>
+            </navigator>
+          </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import globaldata from '../conf/globalData';
+import { SYSTEM_INFO, TOP_CLASSIFY_ID } from '../utils/constant';
+import classifyapi from '../api/classifyapi';
+export default class Classify extends wepy.page {
+  config = {
+    navigationBarTitleText: '分类'
+  };
+
+  data = {
+    // 店铺ID
+    storeid: undefined,
+    curTopClassifyid: undefined,
+    windowHeight: 0,
+    // 一级分类数据
+    topClassifyList: [],
+    // 二级三级分类数据
+    subClassifyList: []
+  };
+  onLoad() {
+    let systemInfo = wx.getStorageSync(SYSTEM_INFO);
+    this.windowHeight = systemInfo.windowHeight;
+  }
+  async onShow() {
+    this.storeid = await globaldata.getStoreId();
+    this.topClassifyList = [];
+    this.subClassifyList = [];
+    this.getTopClassify();
+    this.$apply();
+  }
+
+  /**
+   *  获取最顶层条目
+   */
+  async getTopClassify() {
+    let that = this;
+    classifyapi.getStoreTopClassifyList(this.storeid).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
+      that.topClassifyList = response.data;
+      if (that.topClassifyList.length > 0) {
+        that.curTopClassifyid = wx.getStorageSync(TOP_CLASSIFY_ID);
+        if (that.curTopClassifyid) {
+          that.topClassifyList.forEach(classify => {
+            if (that.curTopClassifyid == classify.id) {
+              classify.active = true;
+            } else {
+              classify.active = false;
+            }
+          });
+        } else {
+          that.topClassifyList[0].active = true;
+          that.curTopClassifyid = that.topClassifyList[0].id;
+        }
+
+        that.getSubClassify(that.curTopClassifyid);
+        that.$apply();
+      }
+    });
+  }
+
+  /**
+   * 获取子条目
+   */
+  async getSubClassify(topClassifyid) {
+    let that = this;
+    classifyapi.getSubClassifyList(topClassifyid).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
+      wepy.setStorageSync(TOP_CLASSIFY_ID, topClassifyid);
+      that.subClassifyList = response.data;
+      that.$apply();
+    });
+  }
+
+  methods = {
+    changeTopClassify(id) {
+      this.getSubClassify(id);
+      wepy.setStorageSync(TOP_CLASSIFY_ID, id);
+      this.topClassifyList.forEach(classify => {
+        if (classify.id == id) {
+          classify.active = true;
+        } else {
+          classify.active = false;
+        }
+      });
+    }
+  };
+}
+</script>
+
+<style lang="less">
+.search_read_only .search_content {
+  width: 100%;
+}
+.classify {
+  display: flex;
+  position: relative;
+  .classify_catetory {
+    width: 200rpx;
+    position: relative;
+    z-index: 1;
+    .name {
+      text-align: center;
+      height: 100rpx;
+      line-height: 100rpx;
+      font-size: 28rpx;
+      color: #666;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .active {
+      border-left: 6rpx solid #ff6a3c;
+      background: #fff;
+      color: #ff6a3c;
+    }
+  }
+  .classify_detail {
+    position: relative;
+    z-index: 999;
+    // margin-left: -15rpx;
+    background: #fff;
+    padding: 15px 10px 10px 30px;
+    .classify_item {
+    }
+    .title {
+      font-size: 30rpx;
+      color: #333;
+      margin-left: 25rpx;
+    }
+    .children {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 20rpx 0rpx;
+    }
+    .child_image {
+      width: 60px;
+      height: 60px;
+    }
+    .child_name {
+      font-size: 26rpx;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 170rpx;
+    }
+    .children_item {
+      height: 200rpx;
+      width: 170rpx;
+      text-align: center;
+    }
+  }
+}
+</style>

@@ -1,0 +1,17 @@
+<template>
+    <pointsRule></pointsRule>
+</template>
+<script>
+import wepy from 'wepy';
+import PointsRule from '../components/points_rule';
+export default class PointsRules extends wepy.page {
+  config = {
+    navigationBarTitleText: '积分说明'
+  };
+  components = {
+    pointsRule: PointsRule
+  };
+}
+</script>
+<style lang="less">
+</style>

@@ -1,0 +1,164 @@
+<template>
+  <view class="messages">
+    <scroll-view scroll-y="true" class="swiper-item-box" style="height:{{winHeight}}px">
+      <repeat for="{{messageList}}" key="index" index="index" item="item">
+        <view class="list_block">
+          <view class="list_item">
+            <view class="list_header">
+              <i class="iconfont icon-message"></i>
+              <view class="header_title">
+                <text class="time">{{item.title}}</text>
+                <text class="doc">{{item.roundup}}</text>
+              </view>
+            </view>
+            <view class="list_content">
+              {{item.content}}
+            </view>
+            <view class="list_footer">
+              {{item.createTime}}
+            </view>
+          </view>
+        </view>
+      </repeat>
+      <!--加载更多时动画-->
+      <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+      <!--暂无数据显示-->
+      <placeholder :show.sync="is_empty" message="暂无消息"></placeholder>
+    </scroll-view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import BottomLoadMore from '../components/common/bottomLoadMore';
+import Placeholder from '../components/common/placeholder';
+import { SYSTEM_INFO } from '../utils/constant';
+import GlobalData from '../conf/globalData';
+import usermessageapi from '../api/usermessageapi';
+import tip from '../utils/tip';
+export default class Messages extends wepy.page {
+  config = {
+    navigationBarTitleText: '我的消息',
+    enablePullDownRefresh: true
+  };
+  components = {
+    bottomLoadMore: BottomLoadMore,
+    placeholder: Placeholder
+  };
+  data = {
+    winHeight: 0,
+    messageList: [],
+    totalpage: 1,
+    currentpage: 0,
+    pagesize: 10,
+    is_empty: true,
+    showLoading: true,
+    // 防止重复加载
+    inRequesting: false
+  };
+
+  onLoad() {
+    // 设置滚动高度
+    let systemInfo = wepy.getStorageSync(SYSTEM_INFO);
+    this.winHeight = systemInfo.windowHeight;
+    this.getUserMessage();
+  }
+
+  onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    this.messageList = [];
+    this.is_empty = true;
+    this.showLoading = true;
+    this.currentpage = 0;
+    this.totalpage = 1;
+    this.getUserMessage();
+  }
+  onReachBottom() {
+    this.showLoading = true;
+    this.getUserMessage();
+  }
+
+  async getUserMessage() {
+    if (this.currentpage >= this.totalpage) {
+      this.showLoading = false;
+      wx.hideNavigationBarLoading();
+      tip.success('已经到底啦');
+      return;
+    }
+    if (this.inRequesting) {
+      return;
+    }
+    this.inRequest = true;
+    this.currentpage += 1;
+    let that = this;
+
+    usermessageapi
+      .getUserMessageList(
+        GlobalData.getUserId(),
+        this.currentpage,
+        this.pagesize
+      )
+      .then(res => {
+        that.showLoading = false;
+        that.inRequesting = false;
+        wx.hideNavigationBarLoading();
+        let response = res.data || {};
+        if (response.code != 200) {
+          return;
+        }
+        let getUserMessageListResponse = response.data;
+        that.currentpage = getUserMessageListResponse.currentpage;
+        that.totalpage = getUserMessageListResponse.totalpage;
+        that.messageList = [
+          ...that.messageList,
+          ...getUserMessageListResponse.dataList
+        ];
+        if (that.messageList.length != 0) {
+          that.is_empty = false;
+        } else {
+          that.is_empty = true;
+        }
+        that.$apply();
+      });
+  }
+}
+</script>
+<style lang="less">
+.list_block {
+  padding: 27rpx;
+}
+
+.list_item {
+  background: #fff;
+  padding: 0rpx 28rpx;
+  border-radius: 20rpx;
+}
+
+.list_header {
+  font-size: 28rpx;
+  padding: 20rpx 0rpx;
+  border-bottom: 1px solid #e6e6e6;
+  display: flex;
+  align-items: center;
+  .time {
+    color: #000;
+  }
+  .doc {
+    color: #000;
+    margin-left: 10rpx;
+  }
+}
+
+.list_content {
+  font-size: 26rpx;
+  color: #f71e1e;
+  padding-top: 23rpx;
+}
+
+.list_footer {
+  text-align: right;
+  font-size: 22rpx;
+  color: #999999;
+  height: 70rpx;
+  line-height: 70rpx;
+}
+</style>

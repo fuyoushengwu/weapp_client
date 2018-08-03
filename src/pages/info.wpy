@@ -1,0 +1,253 @@
+<template>
+    <view class="{{hasUserInfo?'':'hidden'}} info">
+        <view class="header">
+            <view class="header_content">
+                <image class="avatarUrl" src="{{avatarUrl}}"/>
+                <view class="nickName cfff">{{nickName}}</view>
+            </view>
+        </view>
+        <view class="info_block">
+            <navigator class="item" url="/pages/phone" wx:if="{{bShowBind}}">
+                <view>
+                    <view class="item_content">
+                        <image class="item_img" src="../images/icon_my_01.png"/>
+                        <view class="text" style="color:#fe2a2a">绑定手机号</view>
+                    </view>
+                    <view class="tip">绑定手机号可更好的让我们服务好您！</view>
+                </view>
+                <view class="arrow">&gt;</view>
+            </navigator>
+            <navigator class="item" url="/pages/shoporder">
+                <view class="item_content">
+                    <image class="item_img" src="../images/icon_my_02.png"/>
+                    <view class="text">全部订单</view>
+                </view>
+                <view class="arrow">&gt;</view>
+            </navigator>
+            <navigator class="item" url="/pages/points">
+                <view class="item_content">
+                    <image class="item_img" src="../images/icon_my_03.png"/>
+                    <view class="text">我的积分</view>
+                </view>
+                <view class="arrow">&gt;</view>
+            </navigator>
+        </view>
+        <view class="info_block">
+            <navigator class="item" url="/pages/messages" @tap.stop="readMessage">
+                <view class="item_content">
+                    <image class="item_img" src="../images/icon_my_06.png"/>
+                    <view class="text">我的消息</view>
+                </view>
+                <view class="arrow" style="display:flex">
+                  <view class="{{unreadcount>=5?'dotbig':'dot'}}" wx:if="{{unreadcount>0}}" style="margin-right:8px">{{unreadcount}}</view>
+                  <view>     &gt;</view>
+                </view>
+            </navigator>
+            <navigator class="item" url="/pages/setting">
+                <view class="item_content">
+                    <image class="item_img" src="../images/icon_my_07.png"/>
+                    <view class="text">设置</view>
+                </view>
+                <view class="arrow">&gt;</view>
+            </navigator>
+        </view>
+    </view>
+    <!--弹屏  show 是否显示  @close 关闭回调  @registerUser 点击图片回调 或确定回调-->
+    <bombscreen  :show.sync="showBombScreen" @close.user="closeBombScreen" @registerUser.user="registerUser"></bombscreen>
+</template>
+<script>
+import { USER_INFO } from '../utils/constant';
+import usermessageapi from '../api/usermessageapi';
+import wepy from 'wepy';
+import BombScreen from '../components/bomb_screen';
+import api from '../api/api';
+import tip from '../utils/tip';
+export default class Info extends wepy.page {
+  config = {
+    navigationBarTitleText: '我'
+  };
+
+  data = {
+    hasUserInfo: false,
+    avatarUrl: '',
+    nickName: '',
+    bShowBind: true,
+    // 是否显示弹屏
+    showBombScreen: true,
+    // 未读消息数
+    unreadcount: -1
+  };
+
+  components = {
+    bombscreen: BombScreen
+  };
+
+  onShow() {
+    this.initUserInfo(wepy.getStorageSync(USER_INFO));
+  }
+
+  initUserInfo(userInfo) {
+    if (!userInfo) {
+      this.hasUserInfo = false;
+      this.showBombScreen = true;
+      return;
+    }
+    this.hasUserInfo = true;
+    this.showBombScreen = false;
+    this.avatarUrl = userInfo.avatar;
+    this.nickName = userInfo.nickname;
+    if (userInfo.phone) {
+      this.bShowBind = false;
+    } else {
+      this.bShowBind = true;
+    }
+    let that = this;
+    if (this.unreadcount == -1) {
+      usermessageapi.getUserUnReadMessageCount(userInfo.id).then(res => {
+        let response = res.data || {};
+        that.unreadcount = response.data || -1;
+        that.$apply();
+      });
+    }
+  }
+
+  methods = {
+    closeBombScreen() {
+      tip.alert('取消用户注册');
+    },
+    async registerUser(userInfo) {
+      if (!userInfo) {
+        return;
+      }
+      let response = await wepy.login();
+      if (!response || !response.code) {
+        return;
+      }
+      let that = this;
+      api
+        .getAndStorageUserInfo(
+          response.code,
+          userInfo.nickName,
+          userInfo.avatarUrl,
+          userInfo.gender
+        )
+        .then(userInfo => {
+          if (userInfo) {
+            that.initUserInfo(userInfo);
+            wepy.navigateTo({
+              url: '/pages/setting'
+            });
+            return;
+          }
+          that.hasUserInfo = false;
+          that.showBombScreen = true;
+          tip.alert('用户注册失败');
+          that.$apply();
+        });
+    },
+    readMessage() {
+      this.unreadcount = -1;
+    }
+  };
+}
+</script>
+<style lang="less">
+.dot {
+  // position: absolute;
+  // display: inline-block;
+  width: 37rpx;
+  height: 35rpx;
+  line-height: 40rpx;
+  text-align: center;
+  align-items: center; /*垂直居中*/
+  justify-content: center; /*水平居中*/
+  background: #e52424;
+  border-radius: 100px;
+  color: #fff;
+  z-index: 999;
+  font-size: 26rpx;
+  top: 0;
+  right: -10rpx;
+}
+
+.dotbig {
+  // position: absolute;
+  // display: inline-block;
+  width: 50rpx;
+  height: 35rpx;
+  line-height: 40rpx;
+  text-align: center;
+  align-items: center; /*垂直居中*/
+  justify-content: center; /*水平居中*/
+  background: #e52424;
+  border-radius: 100px;
+  color: #fff;
+  z-index: 999;
+  font-size: 26rpx;
+  top: 0;
+  right: -10rpx;
+}
+.hidden {
+  display: none;
+}
+.header {
+  background: #ff6a3c;
+  height: 260rpx;
+  width: 100%;
+}
+
+.header_content {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  padding-top: 48rpx;
+}
+
+.avatarUrl {
+  width: 122rpx;
+  height: 122rpx;
+  border-radius: 1000px;
+}
+
+.nickName {
+  font-size: 30rpx;
+  padding-top: 15rpx;
+}
+
+.info_block {
+  margin-top: 10rpx;
+  .item {
+    border-top: 1rpx solid #dbdbdb;
+    background: #fff;
+    padding: 34rpx 28rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .item:last-child {
+    border-bottom: 1rpx solid #dbdbdb;
+  }
+  .item_content {
+    display: flex;
+    align-items: center;
+    .text {
+      margin-left: 20rpx;
+      color: #1a1a1a;
+    }
+  }
+  .item_img {
+    width: 42rpx;
+    height: 42rpx;
+  }
+  .arrow {
+    color: #cccccc;
+    font-size: 32rpx;
+  }
+  .tip {
+    color: #999;
+    font-size: 24rpx;
+    margin-top: 20rpx;
+    margin-left: 60rpx;
+  }
+}
+</style>

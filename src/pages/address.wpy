@@ -1,0 +1,82 @@
+<template>
+  <view class="{{currentPage==0?'':'hidden'}}">
+    <addressList :addressList.sync="addressList"></addressList>
+  </view>
+  <view class="{{currentPage==1?'':'hidden'}}">
+    <addressAdd/>
+  </view>
+  <view class="{{currentPage==2?'':'hidden'}}">
+    <addressEdit/>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import AddressList from '../components/address_list';
+import AddressAdd from '../components/address_add';
+import AddressEdit from '../components/address_edit';
+import GlobalData from '../conf/globalData';
+import userapi from '../api/userapi';
+export default class Address extends wepy.page {
+  config = {
+    navigationBarTitleText: '收货地址'
+  };
+  data = {
+    addressList: [],
+    // 显示当前组件 0 列表 1新增 2编辑
+    currentPage: 0,
+    // 哪个页面跳转过来的
+    type: ''
+  };
+  components = {
+    addressList: AddressList,
+    addressAdd: AddressAdd,
+    addressEdit: AddressEdit
+  };
+
+  onLoad(option) {
+    this.type = option.type;
+    this.$invoke('addressList', 'setShowType', this.type);
+    this.$invoke('addressList', 'setShopOrderId', option.shoporderid);
+  }
+
+  async loadUserRecieveAddress() {
+    let that = this;
+    userapi.getUserRecieveAddressList(GlobalData.getUserId()).then(res => {
+      let response = res.data || {};
+      if (response.code == 200) {
+        that.addressList = response.data;
+        that.$invoke('addressList', 'setRecieveAddressList', this.addressList);
+      }
+    });
+  }
+
+  onShow() {
+    this.loadUserRecieveAddress();
+  }
+
+  async editRecieveAddress(addressid) {
+    this.addressList.forEach(element => {
+      if (element.id == addressid) {
+        this.$invoke('addressEdit', 'refresh', element);
+      }
+    });
+  }
+
+  events = {
+    refreshAddList(msg) {
+      this.loadUserRecieveAddress();
+    },
+    currentPage(cur, addressid) {
+      this.currentPage = cur;
+      if (cur != 1 && cur != 0) {
+        this.editRecieveAddress(addressid);
+      }
+    }
+  };
+}
+</script>
+<style lang="less">
+.hidden {
+  display: none;
+}
+</style>

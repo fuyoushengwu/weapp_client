@@ -1,0 +1,80 @@
+<template>
+<view class="card">
+    <view class="card-up" @tap="goStoreInfo()">
+        <view class="card-icon"><i class="iconfont icon-gouwuchekong"></i></view>
+        <view class="card-info">
+            <view class="card-tip">
+                <view class="card-name">{{store.name}}</view>
+                <view class="card-distance">{{store.distance}}</view>
+            </view>
+            <view class="card-address">{{store.storeAddress.detail}}</view>
+        </view>
+    </view>
+    <view class="card-down">
+        <button class="btn-putIn" @tap="goClassify()">进入门店</button>
+    </view>
+</view>
+</template>
+<script>
+import wepy from 'wepy';
+import globaldata from '../conf/globalData';
+export default class StoreCard extends wepy.component {
+  props = {
+    store: {}
+  };
+  methods = {
+    goStoreInfo() {
+      globaldata.setStoreId(this.store.id);
+      wx.navigateTo({
+        url: `/pages/store_detail?storeid=${this.store.id}`
+      });
+    },
+    goClassify() {
+      globaldata.setStoreId(this.store.id);
+      wx.switchTab({
+        url: '/pages/classify'
+      });
+    }
+  };
+}
+</script>
+<style lang="less">
+.card {
+  background-color: #ffffff;
+  width: 80%;
+  margin-left: 10%;
+  margin-right: 10%;
+  .card-up {
+    .card-icon {
+      float: left;
+      margin-left: 10%;
+      margin-right: 10px;
+    }
+    .card-info {
+      float: right;
+      width: 80%;
+      .card-tip {
+        .card-name {
+          display: inline;
+        }
+        .card-distance {
+          float: right;
+        }
+      }
+      .card-address {
+        margin-bottom: 10px;
+      }
+    }
+  }
+  .card-down {
+    .btn-putIn {
+      width: 70%;
+      font-size: 14px;
+      background: #ff9c35;
+      color: white;
+      margin-right: 20%;
+    }
+    margin-bottom: 8%;
+  }
+}
+</style>

@@ -1,0 +1,90 @@
+<style lang="less">
+@import './styles/base';
+@import './styles/icon';
+@import './styles/style';
+</style>
+
+<script>
+import wepy from 'wepy';
+import 'wepy-async-function';
+import { SYSTEM_INFO, INFO_REQUEST_PERMISSION } from './utils/constant';
+export default class extends wepy.app {
+  config = {
+    pages: [
+      'pages/classify',
+      'pages/store',
+      'pages/store_detail',
+      'pages/search',
+      'pages/good_detail',
+      'pages/info',
+      'pages/phone',
+      'pages/nickname',
+      'pages/shoporder',
+      'pages/points',
+      'pages/messages',
+      'pages/setting',
+      'pages/shop_cart',
+      'pages/address',
+      'pages/confirm_order',
+      'pages/order_detail',
+      'pages/points_more',
+      'pages/points_rule',
+      'pages/register'
+    ],
+    window: {
+      backgroundTextStyle: 'dark',
+      navigationBarBackgroundColor: '#FFFFFF',
+      navigationBarTitleText: 'WeChat',
+      navigationBarTextStyle: 'black',
+      enablePullDownRefresh: false,
+      backgroundColor: '#EFEFEF'
+    },
+    tabBar: {
+      color: '#999999',
+      selectedColor: '#ff6a3c',
+      backgroundColor: '#ffffff',
+      borderStyle: 'black',
+      list: [
+        {
+          pagePath: 'pages/classify',
+          text: '商品',
+          iconPath: 'images/icon_classify.png',
+          selectedIconPath: 'images/icon_classify_active.png'
+        },
+        {
+          pagePath: 'pages/shop_cart',
+          text: '购物车',
+          iconPath: 'images/icon_shop_cart.png',
+          selectedIconPath: 'images/icon_shop_cart_active.png'
+        },
+        {
+          pagePath: 'pages/info',
+          text: '我',
+          iconPath: 'images/icon_info.png',
+          selectedIconPath: 'images/icon_info_active.png'
+        },
+        {
+          pagePath: 'pages/store',
+          text: '门店',
+          iconPath: 'images/icon_store.png',
+          selectedIconPath: 'images/icon_store_active.png'
+        }
+      ]
+    }
+  };
+
+  constructor() {
+    super();
+    this.use('requestfix');
+    this.use('promisify');
+  }
+
+  async onLaunch() {
+    // 清理上次使用时产生的缓存
+    wepy.removeStorageSync(INFO_REQUEST_PERMISSION);
+    // 获取系统信息
+    let systemInfo = wepy.getSystemInfoSync();
+    wepy.setStorageSync(SYSTEM_INFO, systemInfo);
+  }
+}
+</script>

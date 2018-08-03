@@ -1,0 +1,180 @@
+<template>
+  <view class="container">
+      <filterBar @refresh.user="refresh" :goods.sync="goodList"/>
+      <view wx:if="{{goodList.length>0}}">
+        <!--矩阵商品列表模块-->
+        <goodGridList :goodList.sync="goodList"></goodGridList>
+        <!--加载更多时动画-->
+        <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+        <!--暂无数据显示-->
+        <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
+      </view>
+  </view>
+</template>
+<script>
+import wepy from 'wepy';
+import FilterBar from '../components/filter_bar';
+import GoodGridList from '../components/good_grid_list';
+import BottomLoadMore from '../components/common/bottomLoadMore';
+import Placeholder from '../components/common/placeholder';
+import goodapi from '../api/goodapi';
+import tip from '../utils/tip';
+export default class Search extends wepy.page {
+  config = {
+    navigationBarTitleText: '搜索',
+    enablePullDownRefresh: true
+  };
+
+  components = {
+    filterBar: FilterBar,
+    goodGridList: GoodGridList,
+    bottomLoadMore: BottomLoadMore,
+    placeholder: Placeholder
+  };
+
+  data = {
+    // 当前商品对应的条目ID
+    classifyid: undefined,
+    // 商品列表
+    goodList: [],
+    // 是否展示正在加载页面
+    showLoading: true,
+    // 商品列表为空
+    is_empyt: true,
+    totalpage: 1,
+    currentpage: 0,
+    pagesize: 15,
+    // 防止重复加载
+    inRequesting: false
+  };
+
+  onLoad(option) {
+    this.setTitle(option.title);
+
+    if (option.classifyid != undefined) {
+      this.classifyid = option.classifyid;
+    } else if (option.topClassifyid != undefined) {
+      this.classifyid = option.topClassifyid;
+    }
+    this.getClassifyGoods(this.classifyid);
+  }
+
+  setTitle(title) {
+    wepy.setNavigationBarTitle({
+      title: title
+    });
+  }
+
+  onPullDownRefresh() {
+    wx.showNavigationBarLoading();
+    this.goodList = [];
+    this.showLoading = true;
+    this.is_empty = true;
+    this.totalpage = 1;
+    this.currentpage = 0;
+    this.getClassifyGoods(this.classifyid);
+  }
+
+  onReachBottom() {
+    this.showLoading = true;
+    this.getClassifyGoods(this.classifyid);
+  }
+
+  async getClassifyGoods(classifyid, queryParam = {}) {
+    if (this.currentpage >= this.totalpage) {
+      this.showLoading = false;
+      wx.hideNavigationBarLoading();
+      tip.success('已经到底啦');
+      return;
+    }
+    if (this.inRequesting) {
+      return;
+    }
+    this.inRequesting = true;
+    this.currentpage += 1;
+    let that = this;
+    goodapi
+      .getClassifyGoodList(
+        classifyid,
+        queryParam.packFilter,
+        queryParam.levelFilter,
+        queryParam.orderType,
+        queryParam.orderValue,
+        this.currentpage,
+        this.pagesize
+      )
+      .then(res => {
+        that.showLoading = false;
+        that.inRequesting = false;
+        wx.hideNavigationBarLoading();
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('没有商品信息');
+          return;
+        }
+        let getClassifyGoodListResponse = response.data;
+        that.currentpage = getClassifyGoodListResponse.currentpage;
+        that.totalpage = getClassifyGoodListResponse.totalpage;
+        that.goodList = [
+          ...that.goodList,
+          ...getClassifyGoodListResponse.dataList
+        ];
+        if (that.goodList.length != 0) {
+          that.is_empty = false;
+        } else {
+          that.is_empty = true;
+        }
+        that.$apply();
+      });
+  }
+
+  methods = {
+    refresh(queryParam) {
+      this.goodList = [];
+      this.is_empyt = true;
+      this.showLoading = true;
+      this.totalpage = 1;
+      this.currentpage = 0;
+      this.getClassifyGoods(this.classifyid, queryParam);
+    }
+  };
+}
+</script>
+
+<style lang="less">
+.history {
+  padding: 20px 27px;
+}
+.doc {
+  color: #999;
+  font-size: 26rpx;
+}
+.lable {
+  margin-top: 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-left: -20rpx;
+  .child {
+    background: #dedede;
+    padding: 10rpx 20rpx;
+    border-radius: 300rpx;
+    margin-left: 20rpx;
+    font-size: 26rpx;
+    margin-top: 5rpx;
+    color: #000;
+  }
+}
+.btn_box {
+  width: 377rpx;
+  margin: 0 auto;
+  padding-top: 88rpx;
+  .button {
+    color: #999;
+  }
+}
+.active {
+  border: 1px solid #f23737;
+  color: #f23737;
+}
+</style>

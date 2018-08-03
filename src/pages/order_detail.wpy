@@ -1,0 +1,269 @@
+<template>
+    <view class="order_detail">
+        <view class="address_block">
+            <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND||shoporder.sendtype==SENDTYPE_THIRDSEND}}">
+                <text class="title">收货地址:</text>
+                <text class="content">{{shoporder.recieveAddress.detail}}</text>
+                <text class="content" wx:if="{{shoporder.status==ORDERSTATUS_UNSTART||shoporder.status==ORDERSTATUS_PREORDER}}" @tap.stop="setAddress({{shoporder.id}})">    修改 ></text>
+            </view>
+
+             <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}" @tap.stop='mapPickupAddress({{shoporder.recieveAddress}})'>
+                <text class="title">预约取货地址:</text>
+                <text class="content">{{shoporder.recieveAddress.detail}}--地址导航</text>
+            </view>
+
+            <view class="name" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND||shoporder.sendtype==SENDTYPE_THIRDSEND}}">
+                <text class="title">收货人:</text>
+                <text class="content">{{shoporder.recieveAddress.reciever}}\t\t{{shoporder.recieveAddress.phone}}</text>
+            </view>            
+
+            <view class="pickuptime" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}">
+                <text class="title">预约取货时间:</text>
+                <text class="content">{{shoporder.pickupTime}}</text>
+            </view>           
+
+            <view class="thirdsendno" wx:if="{{shoporder.sendtype==SENDTYPE_THIRDSEND&&shoporder.status==ORDERSTATUS_DOING}}">
+                <text class="title">快递单号:</text>
+                <text class="content">{{shoporder.thirdsendNo}}</text>
+            </view>
+
+            <view class="sender" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND&&shoporder.status==ORDERSTATUS_DOING}}">
+                <text class="title">送货员:</text>
+                <text class="context">{{shoporder.thirdsendNo}}</text>
+            </view>
+
+        </view>
+        <view class="goods_block">
+            <shopItemList :shopitemList.sync="orderItemList"></shopItemList>
+        </view>
+        <view class="info_block">
+            <view class="item">
+                <text class="title">订单编号:</text>
+                <text class="content">{{shoporder.orderNo}}</text>
+            </view>
+            <view class="item">
+                <text class="title">提交时间:</text>
+                <text class="content">{{shoporder.createTime}}</text>
+            </view>
+            <view class="item" wx:if="{{shoporder.status==ORDERSTATUS_FINISHED}}">
+                <text class="title">完成时间:</text>
+                <text class="content">{{shoporder.finishTime}}</text>
+            </view>
+        </view>
+        <view class="footer">
+            <view class="money">应付款:
+                <text class="receive_money">{{shoporder.totalPrice}}</text>
+            </view>
+        </view>
+    </view>
+</template>
+<script>
+import wepy from 'wepy';
+import ShopItemList from '../components/shop_item_list';
+import {
+  SENDTYPE_PICKUP,
+  SENDTYPE_OWNSEND,
+  SENDTYPE_THIRDSEND,
+  ORDERSTATUS_PREORDER,
+  ORDERSTATUS_UNSTART,
+  ORDERSTATUS_DOING,
+  ORDERSTATUS_FINISHED,
+  ADDRESS,
+  SHOPORDER_ID
+} from '../utils/constant';
+import GlobalData from '../conf/globalData';
+import shoporderapi from '../api/shoporderapi';
+import tip from '../utils/tip';
+export default class OrderDetail extends wepy.page {
+  config = {
+    navigationBarTitleText: '订单详情'
+  };
+  components = {
+    shopItemList: ShopItemList
+  };
+  data = {
+    SENDTYPE_PICKUP,
+    SENDTYPE_OWNSEND,
+    SENDTYPE_THIRDSEND,
+    ORDERSTATUS_PREORDER,
+    ORDERSTATUS_UNSTART,
+    ORDERSTATUS_DOING,
+    ORDERSTATUS_FINISHED,
+    shoporder: {},
+    shoporderid: '',
+    orderItemList: []
+  };
+
+  onLoad(options) {
+    this.shoporderid = options.shoporderid;
+    this.loadShopOrderInfo();
+  }
+
+  onShow() {
+    // 处理订单还未处理前修改地址的逻辑
+    let recieveAddress = wepy.getStorageSync(ADDRESS);
+    let shoporderid = wepy.getStorageSync(SHOPORDER_ID);
+    if (shoporderid && recieveAddress) {
+      this.shoporder.recieveAddress = recieveAddress;
+    }
+  }
+
+  async loadShopOrderInfo() {
+    let that = this;
+    shoporderapi
+      .getUserShopOrder(GlobalData.getUserId(), this.shoporderid)
+      .then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('无法获取订单详情');
+          return;
+        }
+        that.shoporder = response.data || {};
+        that.orderItemList = response.data.orderItemList || {};
+        that.$invoke('shopItemList', 'setShopItemList', this.orderItemList);
+        that.$apply();
+      });
+  }
+
+  methods = {
+    setAddress(shoporderid) {
+      wepy.navigateTo({
+        url: '/pages/address?type=shoporder&shoporderid=' + shoporderid
+      });
+    },
+    mapPickupAddress(recieveAddress) {
+      let coordinate = recieveAddress.coordinate;
+      wepy.openLocation({
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+        name: '取货地点',
+        address: recieveAddress.detail
+      });
+    }
+  };
+}
+</script>
+<style lang="less">
+.order_detail {
+  position: relative;
+}
+
+.order_state {
+  padding: 35rpx 24rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10rpx;
+  background: #fff;
+  .iconfont {
+    font-size: 40rpx;
+    color: #6a6a6a;
+  }
+  .state_time {
+    padding-top: 24rpx;
+  }
+  .center {
+    flex: 1;
+    margin-left: 50rpx;
+  }
+  .right {
+    display: flex;
+    align-items: center;
+  }
+  .unpaid {
+    margin-left: 50rpx;
+    .unpaid_doc {
+      margin-left: 10rpx;
+    }
+  }
+  .time_doc {
+    font-size: 26rpx;
+    color: #999;
+  }
+  .time_num {
+    font-size: 26rpx;
+    margin-right: 50rpx;
+  }
+}
+
+.address_block {
+  padding: 30rpx;
+  background: #fff;
+  margin-top: 10rpx;
+  .name {
+    padding-top: 20rpx;
+  }
+  .pickuptime {
+    padding-top: 20rpx;
+  }
+  .thirdsendno {
+    padding-top: 20rpx;
+  }
+  .sender {
+    padding-top: 20rpx;
+  }
+  .title {
+    color: #858585;
+  }
+  .content {
+    color: #000;
+    padding-left: 24rpx;
+  }
+}
+
+.goods_block {
+  margin-top: 10rpx;
+  background: #fff;
+}
+
+.info_block {
+  margin-top: 10rpx;
+  padding: 18rpx;
+  background: #fff;
+  .item {
+    padding-top: 40rpx;
+    .title {
+      font-size: 28rpx;
+    }
+    .content {
+      color: #808080;
+      font-size: 28rpx;
+    }
+  }
+}
+
+.footer {
+  position: fixed;
+  bottom: 0rpx;
+  height: 92rpx;
+  background: #fff;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18rpx;
+  border-top: 1px solid #e6e6e6;
+  .btn_group {
+    display: flex;
+    margin-right: 30rpx;
+    .btn {
+      padding: 20rpx 20rpx;
+      border: 1px solid #cccccc;
+      text-align: center;
+      margin: 0 auto;
+      width: 180rpx;
+      -moz-border-radius: 10rpx;
+      /* Firefox */
+      -webkit-border-radius: 10rpx;
+      /* Safari 和 Chrome */
+      border-radius: 10rpx;
+    }
+    .dsh {
+      margin-left: 20rpx;
+    }
+  }
+  .receive_money {
+    color: #ff4856;
+  }
+}
+</style>

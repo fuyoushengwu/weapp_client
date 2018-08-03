@@ -1,0 +1,127 @@
+<template>
+  <view class='second'>
+    <view class='second-one' @tap.stop='map'>
+      <image src='../images/map.png'/>
+      <text class='second-text-one'>{{curStore.name}}--地址导航</text>
+      <text class='second-text-two'>></text>
+    </view>
+    <view class='second-one'>
+      <image src='../images/time.png'/>
+      <text class='second-text-one'>{{curStore.workTime.start}}-{{curStore.workTime.end}}</text>
+    </view>
+    <view class='second-one'>
+      <image src='../images/phone.png'/>
+      <text class='second-text-one' @tap.stop='phone'>{{curStore.storeAddress.phone}}</text>
+      <text class='second-text-two'>></text>
+    </view>
+    <view class='second-one'>
+      <image src='../images/photo.png'/>
+      <text class='second-text-one'>门店图片</text>
+    </view>
+  </view>
+
+  <view class='third'>
+    <view class="third-view" wx:for="{{curStore.detailImgList}}" wx:key="item">
+      <image src='{{item}}'/>
+    </view>
+  </view>
+</view>
+</template>
+<script>
+import wepy from 'wepy';
+import storeapi from '../api/storeapi';
+export default class StoreDetail extends wepy.page {
+  data = {
+    // 当前门店信息
+    curStore: {}
+  };
+  onLoad(option) {
+    let that = this;
+    storeapi.getStore(option.storeid).then(res => {
+      let response = res.data || {};
+      if (response.code == 200) {
+        that.curStore = response.data;
+        that.$apply();
+      }
+    });
+  }
+
+  methods = {
+    phone() {
+      wepy.makePhoneCall({
+        phone: this.curStore.storeAddress.phone
+      });
+    },
+
+    map() {
+      let coordinate = this.curStore.storeAddress.coordinate;
+      wepy.openLocation({
+        latitude: coordinate.latitude,
+        longitude: coordinate.longitude,
+        name: this.curStore.name,
+        address: this.curStore.storeAddress.detail
+      });
+    }
+  };
+}
+</script>
+<style lang="less">
+.content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.second {
+  width: 100%;
+}
+
+.second-one {
+  display: flex;
+  flex-direction: row;
+  height: 7vh;
+  width: 100%;
+}
+
+.second image {
+  width: 7%;
+  height: 50rpx;
+  margin: auto 0;
+  padding: 0 2%;
+}
+
+.second-text-one {
+  font-size: 32rpx;
+  margin: auto 0;
+  padding-left: 2%;
+  width: 79%;
+}
+
+.second-text-two {
+  margin: auto 0;
+  color: #ececec;
+}
+
+.third {
+  height: 50%;
+  width: 100%;
+  /* background-color: black; */
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin: 0 4%;
+}
+
+.third-view {
+  margin: 2%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  height: 31%;
+}
+
+.third image {
+  width: 200rpx;
+  height: 180rpx;
+}
+</style>
