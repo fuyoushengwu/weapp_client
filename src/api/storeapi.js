@@ -70,9 +70,9 @@ function getStoresCity() {
  * @param {*} storeid
  * @param {*} classifyid
  */
-function addStoreClassify(storeid, classifyid) {
-    return wxRequest(`/store/${storeid}/classify/${classifyid}`, { method: 'PUT' })
-}
+// function addStoreClassify(storeid, classifyid) {
+//     return wxRequest(`/store/${storeid}/classify/${classifyid}`, { method: 'PUT' })
+// }
 
 module.exports = {
     getInUseStoreList,
@@ -81,6 +81,5 @@ module.exports = {
     updateStore,
     deprecateStore,
     getDefaultStoreId,
-    getStoresCity,
-    addStoreClassify
+    getStoresCity
 }

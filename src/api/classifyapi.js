@@ -4,9 +4,9 @@ import { wxRequest } from '../utils/wxRequest';
  * 获取门店下所有的顶层条目
  * @param {*} storeid 
  */
-function getStoreTopClassifyList(storeid) {
-    return wxRequest(`/store/${storeid}/classify`);
-}
+// function getStoreTopClassifyList(storeid) {
+//     return wxRequest(`/store/${storeid}/classify`);
+// }
 
 /**
  * 获取所有顶层条目
@@ -74,7 +74,6 @@ function addClassifyGood(classifyid, goodid) {
 }
 
 module.exports = {
-    getStoreTopClassifyList,
     getTopClassifyList,
     getClassify,
     deleteClassify,

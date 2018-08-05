@@ -42,7 +42,6 @@ export default class Classify extends wepy.page {
 
   data = {
     // 店铺ID
-    storeid: undefined,
     curTopClassifyid: undefined,
     windowHeight: 0,
     // 一级分类数据
@@ -55,7 +54,6 @@ export default class Classify extends wepy.page {
     this.windowHeight = systemInfo.windowHeight;
   }
   async onShow() {
-    this.storeid = await globaldata.getStoreId();
     this.topClassifyList = [];
     this.subClassifyList = [];
     this.getTopClassify();
@@ -67,7 +65,7 @@ export default class Classify extends wepy.page {
    */
   async getTopClassify() {
     let that = this;
-    classifyapi.getStoreTopClassifyList(this.storeid).then(res => {
+    classifyapi.getTopClassifyList().then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         return;
