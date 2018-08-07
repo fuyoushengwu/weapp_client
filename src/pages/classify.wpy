@@ -32,7 +32,6 @@
 </template>
 <script>
 import wepy from 'wepy';
-import globaldata from '../conf/globalData';
 import { SYSTEM_INFO, TOP_CLASSIFY_ID } from '../utils/constant';
 import classifyapi from '../api/classifyapi';
 export default class Classify extends wepy.page {
