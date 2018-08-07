@@ -1,5 +1,3 @@
-import wepy from 'wepy';
-import config from '../conf/config';
 import GlobalData from '../conf/globalData';
 import authapi from './authapi'
 import userapi from './userapi'

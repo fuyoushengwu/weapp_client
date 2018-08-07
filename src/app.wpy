@@ -28,8 +28,7 @@ export default class extends wepy.app {
       'pages/confirm_order',
       'pages/order_detail',
       'pages/points_more',
-      'pages/points_rule',
-      'pages/register'
+      'pages/points_rule'
     ],
     window: {
       backgroundTextStyle: 'dark',

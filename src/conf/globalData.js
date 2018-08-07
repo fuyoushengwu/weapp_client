@@ -1,8 +1,5 @@
 import wepy from 'wepy'
-import { JWT_TOKEN, STORE_ID, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils/constant'
-import storeapi from '../api/storeapi'
-import authapi from '../api/authapi'
-import tip from '../utils/tip'
+import { JWT_TOKEN, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils/constant'
 export default class GlobalData {
 
     static getJWTToken() {
@@ -10,19 +7,6 @@ export default class GlobalData {
         if (!result) {
             result = wepy.getStorageSync(JWT_TOKEN);
         }
-        // if (!result) {
-        // let loginResponse = await wepy.login();
-        // let json = await authapi.getToken(loginResponse.code);
-        // let response = json.data || {};
-        // if (response.code != 200) {
-        // tip.error('服务端执行失败')
-        // throw new Error('服务端执行失败');
-        // }
-        // let tokeResponse = response.data || {};
-        // result = "Bearer " + (tokeResponse.token || '');
-        // GlobalData.jwtToken = result;
-        // wepy.setStorageSync(JWT_TOKEN, result);
-        // }
         return result;
     }
 
@@ -35,32 +19,6 @@ export default class GlobalData {
 
     static async refreshJWTToken() {
 
-    }
-
-    static async getStoreId() {
-        if (GlobalData.storeid) {
-            return GlobalData.storeid;
-        }
-        let storeid = wx.getStorageSync(STORE_ID);
-        if (!storeid) {
-            let json = await storeapi.getDefaultStoreId();
-            let response = json.data || {};
-            if (response.code == 200) {
-                storeid = response.data.defaultId;
-            }
-        }
-        if (!storeid) {
-            return undefined;
-        }
-        GlobalData.setStoreId(storeid);
-        return storeid;
-    }
-
-    static setStoreId(storeid) {
-        if (storeid) {
-            GlobalData.storeid = storeid;
-            wx.setStorageSync(STORE_ID, storeid);
-        }
     }
     static getTopClassifyId() {
         if (GlobalData.topclassifyid) {
@@ -178,7 +136,6 @@ export default class GlobalData {
 
 }
 GlobalData.jwtToken = undefined;
-GlobalData.storeid = undefined;
 GlobalData.topclassifyid = undefined;
 GlobalData.subclassifyid = undefined;
 GlobalData.userInfo = undefined;

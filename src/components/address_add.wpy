@@ -56,18 +56,27 @@ export default class AddressAdd extends wepy.component {
     areaPicker: AreaPicker
   };
   async addRecieveAddress(recieveAddress) {
-    userapi.addUserRecieveAddress(GlobalData.getUserId(), {
-      reciever: recieveAddress.reciever,
-      phone: recieveAddress.phone,
-      detail: recieveAddress.detail,
-      def: this.def,
-      province: this.province,
-      city: this.city,
-      county: this.county
-    });
-    // 0 列表 1新增 2编辑 (显示列表)
-    this.$emit('currentPage', 0);
-    this.$emit('refreshAddList');
+    let that = this;
+    userapi
+      .addUserRecieveAddress(GlobalData.getUserId(), {
+        reciever: recieveAddress.reciever,
+        phone: recieveAddress.phone,
+        detail: recieveAddress.detail,
+        def: this.def,
+        province: this.province,
+        city: this.city,
+        county: this.county
+      })
+      .then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('添加用户收件地址失败');
+          return;
+        }
+        // 0 列表 1新增 2编辑 (显示列表)
+        that.$emit('currentPage', 0);
+        that.$emit('addRecieveAddress', response.data);
+      });
   }
   methods = {
     formSubmit(e) {

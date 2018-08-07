@@ -11,7 +11,7 @@
     </view>
     <view class='second-one'>
       <image src='../images/phone.png'/>
-      <text class='second-text-one' @tap.stop='phone'>{{curStore.storeAddress.phone}}</text>
+      <text class='second-text-one' @tap.stop='phone({{curStore.storeAddress.phone}})'>{{curStore.storeAddress.phone}}</text>
       <text class='second-text-two'>></text>
     </view>
     <view class='second-one'>
@@ -22,7 +22,7 @@
 
   <view class='third'>
     <view class="third-view" wx:for="{{curStore.detailImgList}}" wx:key="item">
-      <image src='{{item}}'/>
+      <image src='{{item}}' @tap="previewImage({{item}})"/>
     </view>
   </view>
 </view>
@@ -47,9 +47,15 @@ export default class StoreDetail extends wepy.page {
   }
 
   methods = {
-    phone() {
+    phone(p) {
       wepy.makePhoneCall({
-        phone: this.curStore.storeAddress.phone
+        phone: p
+      });
+    },
+    previewImage(src) {
+      wx.previewImage({
+        current: src, // 当前显示图片的http链接
+        urls: this.curStore.detailImgList // 需要预览的图片http链接列表
       });
     },
 

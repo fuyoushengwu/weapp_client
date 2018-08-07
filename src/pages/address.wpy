@@ -63,8 +63,40 @@ export default class Address extends wepy.page {
   }
 
   events = {
-    refreshAddList(msg) {
-      this.loadUserRecieveAddress();
+    deleteRecieveAddress(addressid) {
+      let tmpList = [];
+      this.addressList.forEach(element => {
+        if (element.id != addressid) {
+          tmpList.push(element);
+        }
+      });
+      this.addressList = tmpList;
+    },
+    addRecieveAddress(recieveAddress) {
+      let isDef = recieveAddress.def;
+      let tmpList = [recieveAddress];
+      this.addressList.forEach(element => {
+        if (isDef) {
+          element.def = false;
+        }
+        tmpList.push(element);
+      });
+      this.addressList = tmpList;
+    },
+    updateRecieveAddress(recieveAddress) {
+      let isDef = recieveAddress.def;
+      let tmpList = [];
+      this.addressList.forEach(element => {
+        if (element.id == recieveAddress.id) {
+          tmpList.push(recieveAddress);
+        } else {
+          if (isDef) {
+            element.def = false;
+          }
+          tmpList.push(element);
+        }
+      });
+      this.addressList = tmpList;
     },
     currentPage(cur, addressid) {
       this.currentPage = cur;

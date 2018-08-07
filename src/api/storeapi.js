@@ -64,15 +64,6 @@ function getStoresCity() {
     return wxRequest('/store/city');
 }
 
-/**
- * 门店下添加条目
- * 
- * @param {*} storeid
- * @param {*} classifyid
- */
-// function addStoreClassify(storeid, classifyid) {
-//     return wxRequest(`/store/${storeid}/classify/${classifyid}`, { method: 'PUT' })
-// }
 
 module.exports = {
     getInUseStoreList,

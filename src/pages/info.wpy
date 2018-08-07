@@ -134,9 +134,6 @@ export default class Info extends wepy.page {
         .then(userInfo => {
           if (userInfo) {
             that.initUserInfo(userInfo);
-            wepy.navigateTo({
-              url: '/pages/setting'
-            });
             return;
           }
           that.hasUserInfo = false;

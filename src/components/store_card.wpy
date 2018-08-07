@@ -17,20 +17,17 @@
 </template>
 <script>
 import wepy from 'wepy';
-import globaldata from '../conf/globalData';
 export default class StoreCard extends wepy.component {
   props = {
     store: {}
   };
   methods = {
     goStoreInfo() {
-      globaldata.setStoreId(this.store.id);
       wx.navigateTo({
         url: `/pages/store_detail?storeid=${this.store.id}`
       });
     },
     goClassify() {
-      globaldata.setStoreId(this.store.id);
       wx.switchTab({
         url: '/pages/classify'
       });

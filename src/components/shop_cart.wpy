@@ -54,13 +54,8 @@ import GlobalData from '../conf/globalData';
 import shopcartapi from '../api/shopcartapi';
 import tip from '../utils/tip';
 export default class shopCart extends wepy.component {
-  props = {
-    shopcartList: {
-      default: [],
-      type: Object
-    }
-  };
   data = {
+    shopcartList: [],
     // 购物车中商品合计价格
     totalPrice: 0,
     // 购物车中商品是否全选
@@ -72,22 +67,38 @@ export default class shopCart extends wepy.component {
     swipeDelete
   };
 
+  updateShopCartList(list) {
+    if (!list) {
+      return;
+    }
+    this.shopcartList = list;
+    this.allChecked = true;
+    this.totalPrice = 0;
+    this.shopcartList.forEach(element => {
+      if (!element.ischecked) {
+        this.allChecked = false;
+      } else {
+        this.totalPrice += element.count * element.good.price;
+      }
+    });
+    this.$apply();
+  }
+
   async decreaseShopCartCount(shopcartid, count, index) {
     let that = this;
     shopcartapi
       .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, count)
       .then(res => {
+        that.operating = false;
         let response = res.data || {};
         if (response.code != 200) {
           tip.error('修改商品数量失败');
         }
-        that.operating = false;
       });
 
     // 购物车数据
     this.shopcartList[index].count = count;
-    this.totalPrice -= this.shopcartList[index].good.price;
-    this.$apply();
+    this.updateShopCartList(this.shopcartList);
   }
 
   async increaseShopCartCount(shopcartid, count, index) {
@@ -95,63 +106,48 @@ export default class shopCart extends wepy.component {
     shopcartapi
       .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, count)
       .then(res => {
+        that.operating = false;
         let response = res.data || {};
         if (response.code != 200) {
           tip.error('修改商品数量失败');
         }
-        that.operating = false;
       });
 
     // 购物车数据
     this.shopcartList[index].count = count;
-    this.totalPrice += this.shopcartList[index].good.price;
-    this.$apply();
+    this.updateShopCartList(this.shopcartList);
   }
 
   async checkShopCart(shopcartid, itemIndex, ischecked) {
+    let targetCheckStatus = !ischecked;
     shopcartapi.checkShopCartItem(
       GlobalData.getUserId(),
       shopcartid,
-      !ischecked
+      targetCheckStatus
     );
 
-    this.shopcartList[itemIndex].ischecked = !ischecked;
-    if (this.shopcartList[itemIndex].ischecked) {
-      this.totalPrice +=
-        this.shopcartList[itemIndex].count *
-        this.shopcartList[itemIndex].good.price;
-    } else {
-      this.totalPrice -=
-        this.shopcartList[itemIndex].count *
-        this.shopcartList[itemIndex].good.price;
-    }
+    this.shopcartList[itemIndex].ischecked = targetCheckStatus;
+    this.updateShopCartList(this.shopcartList);
   }
 
   triggerAllShopCarts() {
-    shopcartapi.checkAllShopCartItem(GlobalData.getUserId(), !this.allChecked);
-    this.totalPrice = 0;
+    let targetCheckStatus = !this.allChecked;
+    shopcartapi.checkAllShopCartItem(GlobalData.getUserId(), targetCheckStatus);
     this.shopcartList.forEach(element => {
-      element.ischecked = !this.allChecked;
-      if (element.ischecked) {
-        this.totalPrice += element.count * element.good.price;
-      }
+      element.ischecked = targetCheckStatus;
     });
-    this.allChecked = !this.allChecked;
+    this.updateShopCartList(this.shopcartList);
   }
 
   deleteShopCart(shopcart) {
     shopcartapi.deleteShopCartItem(GlobalData.getUserId(), shopcart.id);
     let retList = [];
     this.shopcartList.forEach(element => {
-      if (element.id == shopcart.id) {
-        if (shopcart.ischecked) {
-          this.totalPrice -= shopcart.good.price * shopcart.count;
-        }
-      } else {
+      if (element.id != shopcart.id) {
         retList.push(element);
       }
     });
-    this.shopcartList = retList;
+    this.updateShopCartList(retList);
   }
 
   methods = {
@@ -197,23 +193,6 @@ export default class shopCart extends wepy.component {
       let count = this.shopcartList[index].count;
       count++;
       this.increaseShopCartCount(shopcartid, count, index);
-    }
-  };
-
-  watch = {
-    shopcartList(newVal) {
-      if (!newVal || newVal.length == 0) {
-        return;
-      }
-      this.shopcartList = newVal;
-      this.allChecked = true;
-      this.shopcartList.forEach(element => {
-        if (!element.ischecked) {
-          this.allChecked = false;
-        } else {
-          this.totalPrice += element.count * element.good.price;
-        }
-      });
     }
   };
 }

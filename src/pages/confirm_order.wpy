@@ -231,7 +231,11 @@ export default class ConfirmOrder extends wepy.page {
       return;
     }
     let that = this;
-    previewapi.generatePreviewOrder(this.userInfo.id, this.goodid).then(res => {
+    let goodids = [];
+    if (this.goodid) {
+      goodids.push(this.goodid);
+    }
+    previewapi.generatePreviewOrder(this.userInfo.id, goodids).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         tip.error('订单预览失败,请等待商家修复');
@@ -391,7 +395,6 @@ export default class ConfirmOrder extends wepy.page {
     if (this.sendtype == SENDTYPE_PICKUP) {
       submitRequest.addressid = this.pickupStore.storeAddress.id;
       submitRequest.pickupTime = this.pickupTime;
-      submitRequest.storeid = this.pickupStore.id;
     } else if (this.sendtype == SENDTYPE_OWNSEND) {
       submitRequest.addressid = this.recieveAddress.id;
     } else if (this.sendtype == SENDTYPE_THIRDSEND) {
@@ -408,7 +411,7 @@ export default class ConfirmOrder extends wepy.page {
 
     submitRequest.jfNum = this.genericScore;
 
-    let json = await shoporderapi.saveShopOrder(
+    let json = await shoporderapi.createUserShopOrder(
       this.userInfo.id,
       submitRequest
     );

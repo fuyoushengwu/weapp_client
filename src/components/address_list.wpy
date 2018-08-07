@@ -32,6 +32,7 @@ import { ADDRESS, SHOPORDER_ID } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import shoporderapi from '../api/shoporderapi';
 import userapi from '../api/userapi';
+import tip from '../utils/tip';
 export default class AddressList extends wepy.component {
   props = {
     addressList: {
@@ -62,9 +63,18 @@ export default class AddressList extends wepy.component {
     this.$apply();
   }
   async delUserAddress(addressid) {
-    userapi.deprecateRecieveAddress(GlobalData.getUserId(), addressid);
-    this.$emit('currentPage', 0);
-    this.$emit('refreshAddList');
+    let that = this;
+    userapi
+      .deprecateRecieveAddress(GlobalData.getUserId(), addressid)
+      .then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('删除用户收货地址失败');
+          return;
+        }
+        that.$emit('currentPage', 0);
+        that.$emit('deleteRecieveAddress', addressid);
+      });
   }
   methods = {
     addRecieveAddress() {

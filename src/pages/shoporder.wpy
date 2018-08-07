@@ -48,7 +48,7 @@ export default class Order extends wepy.page {
     ],
     shoporderList: [],
 
-    currentTab: 0,
+    currentTab: -1,
     // 订单的配送方式:  0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
     sendtypeList: [],
     // 订单状态:0:预订;1:未开始;2:进行中;3:已完成;4:订单超时
@@ -133,7 +133,7 @@ export default class Order extends wepy.page {
     let that = this;
     shoporderapi
       .getUserShopOrderList(
-        GlobalData.getUseId(),
+        GlobalData.getUserId(),
         this.orderstatusList,
         this.sendtypeList,
         this.currentpage,
@@ -168,7 +168,7 @@ export default class Order extends wepy.page {
   async loadShopOrderCount() {
     let that = this;
     shoporderapi
-      .getUserShopOrderStatusCount(GlobalData.getUseId())
+      .getUserShopOrderStatusCount(GlobalData.getUserId())
       .then(res => {
         let response = res.data || {};
         if (response.code != 200) {
@@ -194,7 +194,9 @@ export default class Order extends wepy.page {
 
   methods = {
     updateCurrentTab(cur) {
-      this.currentTab = cur;
+      if (cur != this.currentTab) {
+        this.currentTab = cur;
+      }
     }
   };
 
@@ -206,9 +208,6 @@ export default class Order extends wepy.page {
 
   watch = {
     currentTab(newValue) {
-      if (this.currentTab == newValue) {
-        return;
-      }
       switch (newValue) {
         case 0:
           this.sendtypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];

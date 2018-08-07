@@ -20,7 +20,7 @@
             <text>分享</text>
           </button>
         </view>
-        <view class="baoyou" wx:if="{{goodDetail.lifetime!=undefined}}">保质期:{{goodDetail.lifetime.start}}-{{goodDetail.lifetime.end}}</view>
+        <view class="baoyou" wx:if="{{goodDetail.lifetime!=undefined}}">保质期:{{goodDetail.lifetime.start}} / {{goodDetail.lifetime.end}}</view>
         <view class="baoyou" wx:if="{{good.barcode!=undefined&&good.barcode!=''}}">条形码:{{good.barcode}}</view>
       </view>
 

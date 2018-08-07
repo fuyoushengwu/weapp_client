@@ -1,6 +1,6 @@
 <template>
   <view class="shop_cart">
-    <shopCart :shopcartList.sync="shopcartList"></shopCart>
+    <shopCart/>
   </view>
 </template>
 <script>
@@ -57,6 +57,7 @@ export default class shopCart extends wepy.page {
           ...that.shopcartList,
           ...getShopCartItemListResponse.dataList
         ];
+        that.$invoke('shopCart', 'updateShopCartList', that.shopcartList);
         that.$apply();
       });
   }

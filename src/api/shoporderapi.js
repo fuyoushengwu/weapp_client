@@ -10,7 +10,7 @@ import { wxRequest } from '../utils/wxRequest';
  * @param {*} pagesize
  */
 function getUserShopOrderList(userid, status, sendtype, currentpage, pagesize) {
-    let queryurl = `/user/${userid}/shoporder`;
+    let queryurl = `/user/${userid}/shoporder?`;
     if (status) {
         status.forEach(element => {
             queryurl += `status=${element}&`

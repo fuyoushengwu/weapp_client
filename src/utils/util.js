@@ -79,4 +79,6 @@ function getCircleDistance(lat1, lng1, lat2, lng2) {
     return d * (1 + fl * (h1 * sf * (1 - sg) - h2 * (1 - sf) * sg));
 }
 
-module.exports = { getStoreOrderedByDistance }
+module.exports = {
+    getStoreOrderedByDistance
+}
