@@ -29,7 +29,6 @@
 <script>
 import wepy from 'wepy';
 import Placeholder from './common/placeholder';
-import couponapi from '../api/couponapi';
 import tip from '../utils/tip';
 export default class PointsDetail extends wepy.component {
   props = {
@@ -48,27 +47,6 @@ export default class PointsDetail extends wepy.component {
         return;
       }
       this.is_empty = false;
-      newVal.forEach(uservoucher => {
-        if (
-          !uservoucher.goodVoucher ||
-          !uservoucher.goodVoucher.voucheritemIdList
-        ) {
-          return;
-        }
-        let that = this;
-        uservoucher.goodVoucher.voucheritemList = [];
-        let voucheritemIdList = uservoucher.goodVoucher.voucheritemIdList;
-        voucheritemIdList.forEach(voucheritemId => {
-          couponapi.getVoucherItem(voucheritemId).then(res => {
-            let response = res.data || {};
-            if (response.code == 200) {
-              uservoucher.goodVoucher.voucheritemList.push(response.data);
-              that.$apply();
-            }
-          });
-        });
-      });
-      this.uservoucherList = newVal;
     }
   };
   methods = {

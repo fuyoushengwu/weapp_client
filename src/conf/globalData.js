@@ -17,6 +17,11 @@ export default class GlobalData {
         }
     }
 
+    static clearJWTToken() {
+        GlobalData.jwtToken = undefined;
+        wepy.removeStorageSync(JWT_TOKEN);
+    }
+
     static async refreshJWTToken() {
 
     }
@@ -83,6 +88,13 @@ export default class GlobalData {
             wx.setStorageSync(USER_INFO, userInfo);
         }
     }
+    static clearUserInfo() {
+        GlobalData.userInfo = undefined;
+        GlobalData.userid = undefined;
+        GlobalData.nickname = undefined;
+        GlobalData.phone = undefined;
+        wepy.removeStorageSync(USER_INFO);
+    }
 
     static getUserId() {
         let result = GlobalData.userid;
@@ -91,8 +103,9 @@ export default class GlobalData {
             result = userInfo.id;
         }
         return result;
-
     }
+
+
     static setUserId(userid) {
         if (userid) {
             GlobalData.userid = userid;

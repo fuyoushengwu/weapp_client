@@ -31,33 +31,11 @@
 </template>
 <script>
 import wepy from 'wepy';
-import couponapi from '../api/couponapi';
 export default class GoodGridList extends wepy.component {
   props = {
     goodList: [],
     showTitle: {
       default: true
-    }
-  };
-
-  watch = {
-    goodList(newValue) {
-      if (!newValue) {
-        return;
-      }
-      let that = this;
-      newValue.forEach(element => {
-        if (element.voucherId) {
-          couponapi.getGoodVoucher(element.voucherId).then(res => {
-            let response = res.data || {};
-            if (response.code == 200) {
-              element.goodvoucher = response.data;
-              that.apply();
-            }
-          });
-        }
-      });
-      this.goodList = newValue;
     }
   };
 }

@@ -18,6 +18,7 @@ import GoodGridList from '../components/good_grid_list';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import goodapi from '../api/goodapi';
+import couponapi from '../api/couponapi';
 import tip from '../utils/tip';
 export default class Search extends wepy.page {
   config = {
@@ -119,6 +120,18 @@ export default class Search extends wepy.page {
           ...that.goodList,
           ...getClassifyGoodListResponse.dataList
         ];
+        that.goodList.forEach(good => {
+          if (good.voucherId) {
+            couponapi.getGoodVoucher(good.voucherId).then(res => {
+              let response = res.data || {};
+              if (response.code == 200) {
+                good.goodvoucher = response.data;
+                that.$apply();
+              }
+            });
+          }
+        });
+
         if (that.goodList.length != 0) {
           that.is_empty = false;
         } else {

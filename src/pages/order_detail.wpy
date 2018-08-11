@@ -7,9 +7,9 @@
                 <text class="content" wx:if="{{shoporder.status==ORDERSTATUS_UNSTART||shoporder.status==ORDERSTATUS_PREORDER}}" @tap.stop="setAddress({{shoporder.id}})">    修改 ></text>
             </view>
 
-             <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}" @tap.stop='mapPickupAddress({{shoporder.recieveAddress}})'>
+             <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}" @tap.stop='mapPickupAddress({{shoporder.pickupAddress}})'>
                 <text class="title">预约取货地址:</text>
-                <text class="content">{{shoporder.recieveAddress.detail}}--地址导航</text>
+                <text class="content">{{shoporder.pickupAddress.detail}}--地址导航</text>
             </view>
 
             <view class="name" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND||shoporder.sendtype==SENDTYPE_THIRDSEND}}">
@@ -131,13 +131,13 @@ export default class OrderDetail extends wepy.page {
         url: '/pages/address?type=shoporder&shoporderid=' + shoporderid
       });
     },
-    mapPickupAddress(recieveAddress) {
-      let coordinate = recieveAddress.coordinate;
+    mapPickupAddress(pickupAddress) {
+      let coordinate = pickupAddress.coordinate;
       wepy.openLocation({
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
         name: '取货地点',
-        address: recieveAddress.detail
+        address: pickupAddress.detail
       });
     }
   };

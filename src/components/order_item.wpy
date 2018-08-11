@@ -20,8 +20,8 @@
                             <text class="order_doc">{{item.pickupTime}}</text>
                         </view>
                         
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_PICKUP}}" @tap.stop='showPickupAddress({{item.recieveAddress}})'>预约取货地址:
-                            <text class="order_doc">{{item.recieveAddress.detail}}--地址导航</text>
+                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_PICKUP}}" @tap.stop='showPickupAddress({{item.pickupAddress}})'>预约取货地址:
+                            <text class="order_doc">{{item.pickupAddress.detail}}--地址导航</text>
                         </view>
                         <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_THIRDSEND&&item.status==ORDERSTATUS_DOING}}">快递单号:
                             <text class="order_doc">{{item.thirdsendNo}}</text>
@@ -136,13 +136,13 @@ export default class OrderItem extends wepy.component {
       this.$emit('refreshShopOrderCount');
       this.$apply();
     },
-    showPickupAddress(recieveAddress) {
-      let coordinate = recieveAddress.coordinate;
+    showPickupAddress(pickupAddress) {
+      let coordinate = pickupAddress.coordinate;
       wepy.openLocation({
         latitude: coordinate.latitude,
         longitude: coordinate.longitude,
         name: '取货地点',
-        address: recieveAddress.detail
+        address: pickupAddress.detail
       });
     },
     changeRecieveAddress(shoporderid) {

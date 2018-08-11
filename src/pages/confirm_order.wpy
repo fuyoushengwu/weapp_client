@@ -78,7 +78,7 @@
             <view class="spacing"></view>
             
             <view class="block">
-              <view class="left total_jf">通用积分 \t可用{{userInfo.score}}\t抵扣{{userInfo.score/100}}元</view>
+              <view class="left total_jf">通用积分 \t可用{{userInfo.genericScore}}\t抵扣{{userInfo.genericScore/100}}元</view>
               <view class="right"><input type="number" class="dk-jf" @input="jfInput" placeholder="输入抵扣积分"/></view>
             </view>
 
@@ -583,7 +583,7 @@ export default class ConfirmOrder extends wepy.page {
           value: ''
         };
       }
-      if (num > this.userInfo.score) {
+      if (num > this.userInfo.genericScore) {
         tip.error('积分不足');
         return {
           value: ''
@@ -599,9 +599,6 @@ export default class ConfirmOrder extends wepy.page {
 
   watch = {
     sendtype(newValue) {
-      if (this.sendtype == newValue) {
-        return;
-      }
       // 如果配送方式是快递，需要额外支付快递费
       if (newValue == SENDTYPE_THIRDSEND) {
         this.sendPrice = 10;

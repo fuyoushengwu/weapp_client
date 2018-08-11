@@ -53,9 +53,7 @@ export default class Points extends wepy.page {
   onLoad() {
     let systemInfo = wepy.getStorageSync(SYSTEM_INFO) || {};
     this.winHeight = systemInfo.windowHeight;
-
     this.getUserPoint();
-    this.$apply();
   }
   getUserPoint() {
     let userInfo = GlobalData.getUserInfo();
@@ -70,6 +68,24 @@ export default class Points extends wepy.page {
         return;
       }
       let getUserVoucherListResponse = response.data;
+      getUserVoucherListResponse.dataList.forEach(uservoucher => {
+        if (
+          !uservoucher.goodVoucher ||
+          !uservoucher.goodVoucher.voucheritemIdList
+        ) {
+          return;
+        }
+        uservoucher.goodVoucher.voucheritemList = [];
+        uservoucher.goodVoucher.voucheritemIdList.forEach(voucheritemId => {
+          couponapi.getVoucherItem(voucheritemId).then(res => {
+            let response = res.data || {};
+            if (response.code == 200) {
+              uservoucher.goodVoucher.voucheritemList.push(response.data);
+              that.$apply();
+            }
+          });
+        });
+      });
       that.uservoucherList = getUserVoucherListResponse.dataList;
       that.$apply();
     });

@@ -18,6 +18,10 @@ async function wxRequest(url, params = {}, showload = true) {
     if (response.code == 200 && params.onSuccess) {
         await params.onSuccess(response.data);
     }
+    if (response.code == 500 && response.msg == `User[${GlobalData.getUserId()}] not exist`) {
+        GlobalData.clearUserInfo();
+        GlobalData.clearJWTToken();
+    }
     tip.loaded();
     return res;
 }

@@ -37,12 +37,12 @@ export default class Phone extends wepy.page {
       if (response.code == 200) {
         GlobalData.setUserInfo(response.data);
         tip.success('更新手机号成功', 2000);
+        wepy.navigateBack({
+          delta: 1
+        });
       } else {
         tip.error('更新手机号失败');
       }
-    });
-    wepy.navigateBack({
-      delta: 1
     });
   }
 

@@ -25,6 +25,11 @@ export default class shopCart extends wepy.page {
     shopCart: ShopCart
   };
   onShow() {
+    if (this.shopcartList.length == 0) {
+      this.totalpage = 1;
+      this.currentpage = 0;
+      this.pagesize = 10;
+    }
     this.getShopCartItemList();
   }
   onReachBottom() {
