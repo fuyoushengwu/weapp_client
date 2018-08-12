@@ -5,7 +5,7 @@
         <navigator class="list" wx:for="{{goodList}}" wx:key="item" 
           url="/pages/good_detail?goodid={{item.id}}">
             <view class="image_box">
-                <image src="{{item.coverImg}}"></image>
+                <image src="{{item.coverImg}}"/>
             </view>
             <view class="goods">
                 <view class="product_name" wx:if="{{showTitle}}">{{item.name}}</view>

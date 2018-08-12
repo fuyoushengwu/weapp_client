@@ -17,7 +17,7 @@ function getToken(jscode, nickname, avatar, gender) {
         queryurl += `nickname=${nickname}&`;
     }
     if (avatar) {
-        queryurl += `avatar=${avatar}`
+        queryurl += `avatar=${avatar}&`
     }
     if (gender) {
         queryurl += `gender=${gender}`

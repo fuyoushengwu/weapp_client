@@ -51,7 +51,7 @@ export default class Classify extends wepy.page {
     // 子条目是否已经初始化
     subClassify_inited: false
   };
-  
+
   onLoad() {
     let systemInfo = wx.getStorageSync(SYSTEM_INFO);
     this.windowHeight = systemInfo.windowHeight;
@@ -185,34 +185,27 @@ export default class Classify extends wepy.page {
     // margin-left: -15rpx;
     background: #fff;
     padding: 15px 10px 10px 30px;
-    .classify_item {
-    }
-    .title {
-      font-size: 30rpx;
-      color: #333;
-      margin-left: 25rpx;
-    }
     .children {
       display: flex;
       flex-wrap: wrap;
       margin: 20rpx 0rpx;
-    }
-    .child_image {
-      width: 60px;
-      height: 60px;
-    }
-    .child_name {
-      font-size: 26rpx;
-      color: #666;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 170rpx;
-    }
-    .children_item {
-      height: 200rpx;
-      width: 170rpx;
-      text-align: center;
+      .children_item {
+        height: 200rpx;
+        width: 170rpx;
+        text-align: center;
+        .child_image {
+          width: 60px;
+          height: 60px;
+        }
+        .child_name {
+          font-size: 26rpx;
+          color: #666;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          width: 170rpx;
+        }
+      }
     }
   }
 }

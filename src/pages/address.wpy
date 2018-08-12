@@ -1,12 +1,12 @@
 <template>
   <view>
-    <view class="{{currentPage==0?'':'hidden'}}">
+    <view class="{{currentpage==0?'':'hidden'}}">
       <addressList :addressList.sync="addressList"></addressList>
     </view>
-    <view class="{{currentPage==1?'':'hidden'}}">
+    <view class="{{currentpage==1?'':'hidden'}}">
       <addressAdd/>
     </view>
-    <view class="{{currentPage==2?'':'hidden'}}">
+    <view class="{{currentpage==2?'':'hidden'}}">
       <addressEdit/>
     </view>
   </view>
@@ -25,7 +25,7 @@ export default class Address extends wepy.page {
   data = {
     addressList: [],
     // 显示当前组件 0 列表 1新增 2编辑
-    currentPage: 0,
+    currentpage: 0,
     // 哪个页面跳转过来的
     type: ''
   };
@@ -100,8 +100,8 @@ export default class Address extends wepy.page {
       });
       this.addressList = tmpList;
     },
-    currentPage(cur, addressid) {
-      this.currentPage = cur;
+    currentpage(cur, addressid) {
+      this.currentpage = cur;
       if (cur != 1 && cur != 0) {
         this.editRecieveAddress(addressid);
       }

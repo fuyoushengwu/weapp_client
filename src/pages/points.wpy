@@ -1,10 +1,10 @@
 <template>
   <view class="points">
-    <image src="../images/bc_qdyl.png" class="head_bc"></image>
+    <image src="../images/bc_qdyl.png" class="head_bc"/>
     <view class="jf_content">
       <view class="jf_header">
         <view class="image_box">
-          <image class="avatarUrl" src="{{avatarUrl}}"></image>
+          <image class="avatarUrl" src="{{avatarUrl}}"/>
         </view>
         <view class="jf_num cfff">
           <view class="jf_title">通用积分</view>

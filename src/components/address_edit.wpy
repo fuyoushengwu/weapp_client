@@ -94,7 +94,7 @@ export default class AddressEdit extends wepy.component {
           return;
         }
         // 0 列表 1新增 2编辑 (显示列表)
-        that.$emit('currentPage', 0);
+        that.$emit('currentpage', 0);
         that.$emit('updateRecieveAddress', response.data);
       });
   }
