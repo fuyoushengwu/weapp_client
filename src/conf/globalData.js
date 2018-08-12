@@ -2,14 +2,22 @@ import wepy from 'wepy'
 import { JWT_TOKEN, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils/constant'
 export default class GlobalData {
 
+    /**
+     * 获取当前用户的JsonWebToken
+     */
     static getJWTToken() {
         let result = GlobalData.jwtToken;
         if (!result) {
             result = wepy.getStorageSync(JWT_TOKEN);
+            GlobalData.jwtToken = result;
         }
         return result;
     }
 
+    /**
+     * 设置当前用户的JsonWebToken
+     * @param {*} jwtToken 
+     */
     static setJWTToken(jwtToken) {
         if (jwtToken) {
             GlobalData.jwtToken = jwtToken;
@@ -17,27 +25,37 @@ export default class GlobalData {
         }
     }
 
+    /**
+     * 清理当前用户的JsonWebToken
+     */
     static clearJWTToken() {
         GlobalData.jwtToken = undefined;
         wepy.removeStorageSync(JWT_TOKEN);
     }
 
+    /**
+     * 更新用户的JsonWebToken
+     */
     static async refreshJWTToken() {
 
     }
+
+    /**
+     * 获取用户正在使用中的顶层条目ID
+     */
     static getTopClassifyId() {
-        if (GlobalData.topclassifyid) {
-            return GlobalData.topclassifyid;
+        let result = GlobalData.topclassifyid;
+        if (!result) {
+            result = wx.getStorageSync(TOP_CLASSIFY_ID);
+            GlobalData.topclassifyid = result;
         }
-        let topclassifyid = wx.getStorageSync(TOP_CLASSIFY_ID);
-        if (!topclassifyid) {
-            topclassifyid = undefined;
-        } else {
-            GlobalData.setClassifyId(topclassifyid);
-        }
-        return topclassifyid;
+        return result;
     }
 
+    /**
+     * 设置用户正在使用中的顶层条目ID
+     * @param {*} topclassifyid 
+     */
     static setTopClassifyId(topclassifyid) {
         if (topclassifyid) {
             GlobalData.topclassifyid = topclassifyid;
@@ -45,19 +63,22 @@ export default class GlobalData {
         }
     }
 
+    /**
+     * 获取用户正在使用的子条目ID
+     */
     static getSubClassifyId() {
-        if (GlobalData.subclassifyid) {
-            return GlobalData.subclassifyid;
+        let result = GlobalData.subclassifyid;
+        if (!result) {
+            result = wx.getStorageSync(SUB_CLASSIFY_ID);
+            GlobalData.subclassifyid = result;
         }
-        let subclassifyid = wx.getStorageSync(SUB_CLASSIFY_ID);
-        if (!subclassifyid) {
-            subclassifyid = undefined;
-        } else {
-            GlobalData.setClassifyId(subclassifyid);
-        }
-        return subclassifyid;
+        return result;
     }
 
+    /**
+     * 设置用户正在使用的子条目ID
+     * @param {*} subclassifyid 
+     */
     static setSubClassifyId(subclassifyid) {
         if (subclassifyid) {
             GlobalData.subclassifyid = subclassifyid;
@@ -65,6 +86,9 @@ export default class GlobalData {
         }
     }
 
+    /**
+     * 获取用户信息
+     */
     static getUserInfo() {
         let result = GlobalData.userInfo;
         if (!result) {
@@ -74,77 +98,91 @@ export default class GlobalData {
             wepy.switchTab({
                 url: '/pages/info'
             })
-            throw "no user registed";
+            throw new Error("no user registed");
         }
         return result;
     }
 
+    /**
+     * 设置用户信息
+     * @param {*} userInfo 
+     */
     static setUserInfo(userInfo) {
         if (userInfo) {
             GlobalData.userInfo = userInfo;
-            GlobalData.userid = userInfo.id;
-            GlobalData.nickname = userInfo.nickname;
-            GlobalData.phone = userInfo.phone;
             wx.setStorageSync(USER_INFO, userInfo);
         }
     }
+
+    /**
+     * 清理用户信息
+     */
     static clearUserInfo() {
         GlobalData.userInfo = undefined;
-        GlobalData.userid = undefined;
-        GlobalData.nickname = undefined;
-        GlobalData.phone = undefined;
         wepy.removeStorageSync(USER_INFO);
     }
 
+    /**
+     * 获取用户ID
+     */
     static getUserId() {
-        let result = GlobalData.userid;
-        if (!result) {
-            let userInfo = GlobalData.getUserInfo();
-            result = userInfo.id;
-        }
-        return result;
+        let userInfo = GlobalData.getUserInfo();
+        return userInfo.id;
     }
 
 
+    /**
+     * 设置用户ID
+     * @param {*} userid 
+     */
     static setUserId(userid) {
         if (userid) {
-            GlobalData.userid = userid;
-        }
-        let userInfo = GlobalData.getUserInfo();
-        userInfo.id = userid;
-    }
-
-    static getNickName() {
-        let result = GlobalData.nickname;
-        if (!result) {
             let userInfo = GlobalData.getUserInfo();
-            result = userInfo.nickname;
+            userInfo.id = userid;
+            GlobalData.setUserInfo(userInfo);
         }
-        return result;
     }
 
+    /**
+     * 获取用户名
+     */
+    static getNickName() {
+        let userInfo = GlobalData.getUserInfo();
+        return userInfo.nickname;
+    }
+
+    /**
+     * 设置用户名
+     * @param {*} nickname 
+     */
     static setNickName(nickname) {
         if (nickname) {
-            GlobalData.nickname = nickname;
-        }
-        let userInfo = GlobalData.getUserInfo();
-        userInfo.nickname = nickname;
-    }
-    static getPhone() {
-        let result = GlobalData.phone;
-        if (!result) {
             let userInfo = GlobalData.getUserInfo();
-            result = userInfo.phone;
+            userInfo.nickname = nickname;
+            GlobalData.setUserInfo(userInfo);
         }
-        return result;
+
     }
 
+    /**
+     * 设置用户手机
+     */
+    static getPhone() {
+        let userInfo = GlobalData.getUserInfo();
+        return userInfo.phone;
+    }
+
+    /**
+     * 设置用户手机
+     * @param {*} phone 
+     */
     static setPhone(phone) {
         if (phone) {
-            GlobalData.phone = phone;
+            let userInfo = GlobalData.getUserInfo;
+            userInfo.phone = phone;
+            GlobalData.setUserInfo(userInfo);
         }
-        let userInfo = GlobalData.getUserInfo();
-        userInfo.phone = phone;
+
     }
 
 }
@@ -152,6 +190,3 @@ GlobalData.jwtToken = undefined;
 GlobalData.topclassifyid = undefined;
 GlobalData.subclassifyid = undefined;
 GlobalData.userInfo = undefined;
-GlobalData.userid = undefined;
-GlobalData.nickname = undefined;
-GlobalData.phone = undefined;

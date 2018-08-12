@@ -1,4 +1,5 @@
 <template>
+  <view>
     <view class="swiper-tab-pd">
         <tab @currentTab.user="updateCurrentTab" :tabList.sync="tabList" :currentTab.sync="currentTab"/>
     </view>
@@ -9,6 +10,7 @@
       <!--暂无数据显示-->
       <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
     </scroll-view>
+  </view>
 </template>
 <script>
 import wepy from 'wepy';

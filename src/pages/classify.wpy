@@ -1,7 +1,8 @@
 <template>
+  <view>
     <view class="top_search">
       <view class="search_read_only">
-        <navigator class="search_content" url="/pages/search">
+        <navigator class="search_content">
           <i class="iconfont icon-search"></i>
           <view class="search_input">搜索商品</view>
         </navigator>
@@ -16,101 +17,109 @@
         </scroll-view>
         <scroll-view class="classify_detail" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
           <view class="children">
-            <navigator hover-class="none" class="children_item" url="/pages/search?topClassifyid={{curTopClassifyid}}&title=所有商品">
-              <image class="child_image" src="../images/all_goods.png"></image>
-              <view class="child_name">所有</view>
-            </navigator>
-
             <navigator hover-class="none" class="children_item" wx:for="{{subClassifyList}}" wx:for-item="item" wx:key="id" 
                 url="/pages/search?classifyid={{item.id}}&title={{item.name}}">
-              <image class="child_image" src="{{item.coverImg}}"></image>
+              <image class="child_image" src="{{item.coverImg}}"/>
               <view class="child_name">{{item.name}}</view>
             </navigator>
           </view>
         </scroll-view>
     </view>
+  </view>
 </template>
 <script>
 import wepy from 'wepy';
-import { SYSTEM_INFO, TOP_CLASSIFY_ID } from '../utils/constant';
+import { SYSTEM_INFO } from '../utils/constant';
 import classifyapi from '../api/classifyapi';
+import GlobalData from '../conf/globalData';
 export default class Classify extends wepy.page {
   config = {
     navigationBarTitleText: '分类'
   };
 
   data = {
-    // 店铺ID
-    curTopClassifyid: undefined,
+    // 正在使用中的顶层条目
+    topClassifyId: '',
+    // 系统窗口高度
     windowHeight: 0,
-    // 一级分类数据
+    // 顶层条目
     topClassifyList: [],
-    // 二级三级分类数据
-    subClassifyList: []
+    // 顶层条目是否已经初始化
+    topClassify_inited: false,
+    // 子条目
+    subClassifyList: [],
+    // 子条目是否已经初始化
+    subClassify_inited: false
   };
+  
   onLoad() {
     let systemInfo = wx.getStorageSync(SYSTEM_INFO);
     this.windowHeight = systemInfo.windowHeight;
-  }
-  async onShow() {
-    this.topClassifyList = [];
-    this.subClassifyList = [];
-    this.getTopClassify();
-    this.$apply();
+    this.topClassifyId = GlobalData.getTopClassifyId();
+    this.initTopClassify();
+    this.initSubClassify();
   }
 
   /**
+   * 初始化顶层条目
+   */
+  initTopClassify() {
+    if (this.topClassify_inited) {
+      return;
+    }
+    this.topClassify_inited = true;
+    this.getTopClassify();
+  }
+  /**
    *  获取最顶层条目
    */
-  async getTopClassify() {
+  getTopClassify() {
     let that = this;
     classifyapi.getTopClassifyList().then(res => {
       let response = res.data || {};
-      if (response.code != 200) {
-        return;
-      }
-      that.topClassifyList = response.data;
-      if (that.topClassifyList.length > 0) {
-        that.curTopClassifyid = wx.getStorageSync(TOP_CLASSIFY_ID);
-        if (that.curTopClassifyid) {
-          that.topClassifyList.forEach(classify => {
-            if (that.curTopClassifyid == classify.id) {
-              classify.active = true;
-            } else {
-              classify.active = false;
-            }
-          });
-        } else {
-          that.topClassifyList[0].active = true;
-          that.curTopClassifyid = that.topClassifyList[0].id;
-        }
-
-        that.getSubClassify(that.curTopClassifyid);
+      if (response.code == 200) {
+        that.topClassifyList = response.data;
         that.$apply();
       }
     });
   }
 
   /**
+   * 初始化子条目
+   */
+  initSubClassify() {
+    if (!this.topClassifyId) {
+      return;
+    }
+    if (this.subClassify_inited) {
+      return;
+    }
+    this.subClassify_inited = true;
+    this.getSubClassify();
+  }
+
+  /**
    * 获取子条目
    */
-  async getSubClassify(topClassifyid) {
+  getSubClassify() {
+    if (!this.topClassifyId) {
+      return;
+    }
     let that = this;
-    classifyapi.getSubClassifyList(topClassifyid).then(res => {
+    classifyapi.getSubClassifyList(this.topClassifyId).then(res => {
       let response = res.data || {};
-      if (response.code != 200) {
-        return;
+      if (response.code == 200) {
+        that.subClassifyList = response.data;
+        that.$apply();
       }
-      wepy.setStorageSync(TOP_CLASSIFY_ID, topClassifyid);
-      that.subClassifyList = response.data;
-      that.$apply();
     });
   }
 
   methods = {
     changeTopClassify(id) {
-      this.getSubClassify(id);
-      wepy.setStorageSync(TOP_CLASSIFY_ID, id);
+      this.topClassifyId = id;
+      GlobalData.setTopClassifyId(id);
+      this.getSubClassify();
       this.topClassifyList.forEach(classify => {
         if (classify.id == id) {
           classify.active = true;
@@ -118,6 +127,26 @@ export default class Classify extends wepy.page {
           classify.active = false;
         }
       });
+    }
+  };
+
+  watch = {
+    topClassifyList() {
+      if (this.topClassifyList && this.topClassifyList.length > 0) {
+        if (!this.topClassifyId) {
+          this.topClassifyId = this.topClassifyList[0].id;
+          GlobalData.setTopClassifyId(this.topClassifyId);
+        }
+
+        this.topClassifyList.forEach(classify => {
+          if (this.topClassifyId == classify.id) {
+            classify.active = true;
+          } else {
+            classify.active = false;
+          }
+        });
+        this.initSubClassify();
+      }
     }
   };
 }

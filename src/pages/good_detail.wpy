@@ -121,7 +121,7 @@ export default class GoodDetail extends wepy.page {
   onShareAppMessage() {
     return {
       title: '商品详情',
-      path: `/pages/goods_detail?goodid=${this.goodid}`,
+      path: `pages/good_detail?goodid=${this.goodid}`,
       fail: function(res) {
         tip.error(res.errMsg);
       }

@@ -1,31 +1,32 @@
 <template>
-  <view class='second'>
-    <view class='second-one' @tap.stop='map'>
-      <image src='../images/map.png'/>
-      <text class='second-text-one'>{{curStore.name}}--地址导航</text>
-      <text class='second-text-two'>></text>
+  <view>
+    <view class='second'>
+      <view class='second-one' @tap.stop='map'>
+        <image src='../images/map.png'/>
+        <text class='second-text-one'>{{curStore.name}}--地址导航</text>
+        <text class='second-text-two'>></text>
+      </view>
+      <view class='second-one'>
+        <image src='../images/time.png'/>
+        <text class='second-text-one'>{{curStore.workTime.start}}-{{curStore.workTime.end}}</text>
+      </view>
+      <view class='second-one'>
+        <image src='../images/phone.png'/>
+        <text class='second-text-one' @tap.stop='phone({{curStore.storeAddress.phone}})'>{{curStore.storeAddress.phone}}</text>
+        <text class='second-text-two'>></text>
+      </view>
+      <view class='second-one'>
+        <image src='../images/photo.png'/>
+        <text class='second-text-one'>门店图片</text>
+      </view>
     </view>
-    <view class='second-one'>
-      <image src='../images/time.png'/>
-      <text class='second-text-one'>{{curStore.workTime.start}}-{{curStore.workTime.end}}</text>
-    </view>
-    <view class='second-one'>
-      <image src='../images/phone.png'/>
-      <text class='second-text-one' @tap.stop='phone({{curStore.storeAddress.phone}})'>{{curStore.storeAddress.phone}}</text>
-      <text class='second-text-two'>></text>
-    </view>
-    <view class='second-one'>
-      <image src='../images/photo.png'/>
-      <text class='second-text-one'>门店图片</text>
-    </view>
-  </view>
 
-  <view class='third'>
-    <view class="third-view" wx:for="{{curStore.detailImgList}}" wx:key="item">
-      <image src='{{item}}' @tap="previewImage({{item}})"/>
+    <view class='third'>
+      <view class="third-view" wx:for="{{curStore.detailImgList}}" wx:key="item">
+        <image src='{{item}}' @tap="previewImage({{item}})"/>
+      </view>
     </view>
   </view>
-</view>
 </template>
 <script>
 import wepy from 'wepy';

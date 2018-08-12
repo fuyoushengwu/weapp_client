@@ -1,4 +1,5 @@
 <template>
+  <view>
     <view class="{{hasUserInfo?'':'hidden'}} info">
         <view class="header">
             <view class="header_content">
@@ -54,6 +55,7 @@
     </view>
     <!--弹屏  show 是否显示  @close 关闭回调  @registerUser 点击图片回调 或确定回调-->
     <bombscreen  :show.sync="showBombScreen" @close.user="closeBombScreen" @registerUser.user="registerUser"></bombscreen>
+  </view>
 </template>
 <script>
 import { USER_INFO } from '../utils/constant';

@@ -1,12 +1,14 @@
 <template>
-  <view class="{{currentPage==0?'':'hidden'}}">
-    <addressList :addressList.sync="addressList"></addressList>
-  </view>
-  <view class="{{currentPage==1?'':'hidden'}}">
-    <addressAdd/>
-  </view>
-  <view class="{{currentPage==2?'':'hidden'}}">
-    <addressEdit/>
+  <view>
+    <view class="{{currentPage==0?'':'hidden'}}">
+      <addressList :addressList.sync="addressList"></addressList>
+    </view>
+    <view class="{{currentPage==1?'':'hidden'}}">
+      <addressAdd/>
+    </view>
+    <view class="{{currentPage==2?'':'hidden'}}">
+      <addressEdit/>
+    </view>
   </view>
 </template>
 <script>

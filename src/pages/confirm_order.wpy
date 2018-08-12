@@ -1,6 +1,5 @@
 <template>
     <view class="confirm_order">
-
         <view class="goodsList">
             <repeat for="{{previeworderItemList}}" key="index" index="index" item="item">
                 <view class="list_box">

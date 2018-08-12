@@ -1,50 +1,52 @@
 <template>
-  <view class="goodsList">
-    <repeat for="{{shopcartList}}" key="index" index="index" item="item">
-      <view class="list_box">
-        <swipeDelete :swipeData="item" @delItem.user="deleteShopCartItem">
-            <view class="goods-info">
-                <icon class="icon-check" type="success" color="{{item.ischecked?'red':'rgb(153,153,153)'}}" 
-                      @tap.stop="checkItem({{index}},{{item.id}})" size="20"/>
-                <view class="img-box"><image class='img' src="{{item.good.coverImg}}"/></view>
-                <view class="text-box">
-                    <view class="goods-title">
-                        <navigator url="/pages/good_detail?goodid={{item.good.id}}">
-                        {{item.good.name}}
-                        </navigator>
-                    </view>
-                    <view class="goods-price">{{item.good.price}}</view>
-                    <view class="buy-num">
-                        <view class="jian-btn" @tap.stop="decreaseItemCount({{index}},{{item.id}})">-</view>
-                        <input type="number"  value="{{item.count}}" disabled/>
-                        <view class="jia-btn" @tap.stop="increaseItemCount({{index}},{{item.id}})">+</view>
-                    </view>
-                </view>
-            </view>
-        </swipeDelete>
-      </view>
-    </repeat>
-  </view>
-  
-  <view class="empty_cart" wx:if="{{shopcartList.length==0}}">
-    <image src="../images/empty_cart.png" class="empyt_cart_img"/>
-    <view class="empty_cart_text">购物车还是空的</view>
-    <view class="shop_btn">
-      <view class="block btn_group">
-        <view class="btn get_store" @tap="goClassify">去逛逛</view>
+  <view>
+    <view class="goodsList">
+      <repeat for="{{shopcartList}}" key="index" index="index" item="item">
+        <view class="list_box">
+          <swipeDelete :swipeData="item" @delItem.user="deleteShopCartItem">
+              <view class="goods-info">
+                  <icon class="icon-check" type="success" color="{{item.ischecked?'red':'rgb(153,153,153)'}}" 
+                        @tap.stop="checkItem({{index}},{{item.id}})" size="20"/>
+                  <view class="img-box"><image class='img' src="{{item.good.coverImg}}"/></view>
+                  <view class="text-box">
+                      <view class="goods-title">
+                          <navigator url="/pages/good_detail?goodid={{item.good.id}}">
+                          {{item.good.name}}
+                          </navigator>
+                      </view>
+                      <view class="goods-price">{{item.good.price}}</view>
+                      <view class="buy-num">
+                          <view class="jian-btn" @tap.stop="decreaseItemCount({{index}},{{item.id}})">-</view>
+                          <input type="number"  value="{{item.count}}" disabled/>
+                          <view class="jia-btn" @tap.stop="increaseItemCount({{index}},{{item.id}})">+</view>
+                      </view>
+                  </view>
+              </view>
+          </swipeDelete>
+        </view>
+      </repeat>
+    </view>
+    
+    <view class="empty_cart" wx:if="{{shopcartList.length==0}}">
+      <image src="../images/empty_cart.png" class="empyt_cart_img"/>
+      <view class="empty_cart_text">购物车还是空的</view>
+      <view class="shop_btn">
+        <view class="block btn_group">
+          <view class="btn get_store" @tap="goClassify">去逛逛</view>
+        </view>
       </view>
     </view>
-  </view>
 
-  <view class="jiesuan-box" wx:if="{{shopcartList.length>0}}">
-    <view class="left-price">
-      <view @tap.stop="triggerCheckedAll" class="all_select_box">
-        <icon type="success" size="20" color="{{allChecked?'red':'rgb(153,153,153)'}}"/>
-        <view class="all_select">全选</view>
+    <view class="jiesuan-box" wx:if="{{shopcartList.length>0}}">
+      <view class="left-price">
+        <view @tap.stop="triggerCheckedAll" class="all_select_box">
+          <icon type="success" size="20" color="{{allChecked?'red':'rgb(153,153,153)'}}"/>
+          <view class="all_select">全选</view>
+        </view>
+        <view class="total">合计:￥{{totalPrice}}</view>
       </view>
-      <view class="total">合计:￥{{totalPrice}}</view>
+      <view class="to-pay-btn" @tap="buy">购买</view>
     </view>
-    <view class="to-pay-btn" @tap="buy">购买</view>
   </view>
 </template>
 <script>

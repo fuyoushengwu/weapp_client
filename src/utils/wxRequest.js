@@ -3,27 +3,28 @@ import config from '../conf/config';
 import GlobalData from '../conf/globalData';
 import tip from './tip';
 
-async function wxRequest(url, params = {}, showload = true) {
+function wxRequest(url, params = {}, showload = true) {
+    let headerValue = {
+        'Content-Type': 'application/json',
+        'Authorization': GlobalData.getJWTToken()
+    };
     if (showload) {
         tip.loading();
     }
-    let headerValue = { 'Content-Type': 'application/json', 'Authorization': GlobalData.getJWTToken() };
-    let res = await wepy.request({
+    return wepy.request({
         url: config.service.host + url,
         method: params.method || 'GET',
         data: params.data,
         header: headerValue
+    }).then(res => {
+        tip.loaded();
+        let response = res.data || {};
+        if (response.code == 500 && response.msg == `User[${GlobalData.getUserId()}] not exist`) {
+            GlobalData.clearUserInfo();
+            GlobalData.clearJWTToken();
+        }
+        return res;
     });
-    let response = res.data || {};
-    if (response.code == 200 && params.onSuccess) {
-        await params.onSuccess(response.data);
-    }
-    if (response.code == 500 && response.msg == `User[${GlobalData.getUserId()}] not exist`) {
-        GlobalData.clearUserInfo();
-        GlobalData.clearJWTToken();
-    }
-    tip.loaded();
-    return res;
 }
 
 

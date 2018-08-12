@@ -1,4 +1,5 @@
 <template>
+  <view>
     <view class="address">
         <repeat for="{{addressList}}" key="index" index="index" item="item">
             <view class="list_box">
@@ -24,6 +25,7 @@
     <view class="add_wrap">
         <view class="button type_red" @tap="addRecieveAddress">新增地址</view>
     </view>
+  </view>
 </template>
 <script>
 import wepy from 'wepy';
