@@ -416,6 +416,14 @@ export default class ConfirmOrder extends wepy.page {
     );
     let response = json.data || {};
     if (response.code == 200) {
+      shopcartapi
+        .getShopCartItemList(GlobalData.getUserId(), 1, 10)
+        .then(res => {
+          let response = res.data || {};
+          if (response.code == 200) {
+            GlobalData.setShopCartList(response.data.dataList);
+          }
+        });
       tip.alert('订单提交成功');
       wepy.redirectTo({
         url: `/pages/shoporder?sendtype=${submitRequest.sendtype}&orderstatus=${

@@ -185,8 +185,37 @@ export default class GlobalData {
 
     }
 
+    /**
+     * 获取购物车
+     */
+    static getShopCartList() {
+        return GlobalData.shopcartList;
+    }
+
+    /**
+     * 设置购物车
+     * @param {*} shopcartList 
+     */
+    static setShopCartList(shopcartList) {
+        if (shopcartList) {
+            GlobalData.shopcartList = shopcartList;
+        }
+    }
+
+    /**
+     * 添加购物车
+     * @param {*} shopcart 
+     */
+    static addShopCart(shopcart) {
+        if (shopcart) {
+            GlobalData.shopcartList.unshift(shopcart);
+        }
+    }
+
+
 }
 GlobalData.jwtToken = undefined;
 GlobalData.topclassifyid = undefined;
 GlobalData.subclassifyid = undefined;
 GlobalData.userInfo = undefined;
+GlobalData.shopcartList = [];

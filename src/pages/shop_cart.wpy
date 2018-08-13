@@ -8,7 +8,6 @@ import wepy from 'wepy';
 import ShopCart from '../components/shop_cart';
 import GlobalData from '../conf/globalData';
 import shopcartapi from '../api/shopcartapi';
-import tip from '../utils/tip';
 export default class shopCart extends wepy.page {
   config = {
     navigationBarTitleText: '购物车'
@@ -24,21 +23,18 @@ export default class shopCart extends wepy.page {
   components = {
     shopCart: ShopCart
   };
-  onShow() {
-    if (this.shopcartList.length == 0) {
-      this.totalpage = 1;
-      this.currentpage = 0;
-      this.pagesize = 10;
-    }
+  onLoad() {
     this.getShopCartItemList();
+  }
+  onShow() {
+    this.shopcartList = GlobalData.getShopCartList();
+    this.$invoke('shopCart', 'updateShopCartList', this.shopcartList);
   }
   onReachBottom() {
     this.getShopCartItemList();
   }
   getShopCartItemList() {
-    let userid = GlobalData.getUserId();
     if (this.currentpage >= this.totalpage) {
-      tip.success('已经到底啦');
       return;
     }
     if (this.inRequesting) {
@@ -48,20 +44,25 @@ export default class shopCart extends wepy.page {
     this.currentpage += 1;
     let that = this;
     shopcartapi
-      .getShopCartItemList(userid, this.currentpage, this.pagesize)
+      .getShopCartItemList(
+        GlobalData.getUserId(),
+        this.currentpage,
+        this.pagesize
+      )
       .then(res => {
         that.inRequesting = false;
         let response = res.data || {};
         if (response.code != 200) {
           return;
         }
-        let getShopCartItemListResponse = response.data;
-        that.currentpage = getShopCartItemListResponse.currentpage;
-        that.totalPrice = getShopCartItemListResponse.totalpage;
+        let getShopCartListResponse = response.data;
+        that.currentpage = getShopCartListResponse.currentpage;
+        that.totalpage = getShopCartListResponse.totalpage;
         that.shopcartList = [
           ...that.shopcartList,
-          ...getShopCartItemListResponse.dataList
+          ...getShopCartListResponse.dataList
         ];
+        GlobalData.setShopCartList(that.shopcartList);
         that.$invoke('shopCart', 'updateShopCartList', that.shopcartList);
         that.$apply();
       });

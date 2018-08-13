@@ -74,6 +74,7 @@ export default class shopCart extends wepy.component {
       return;
     }
     this.shopcartList = list;
+    GlobalData.setShopCartList(this.shopcartList);
     this.allChecked = true;
     this.totalPrice = 0;
     this.shopcartList.forEach(element => {
@@ -86,55 +87,61 @@ export default class shopCart extends wepy.component {
     this.$apply();
   }
 
-  async decreaseShopCartCount(shopcartid, count, index) {
+  updateShopCartItemCount(shopcartid, index, oriCount, targetCount) {
     let that = this;
     shopcartapi
-      .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, count)
+      .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, targetCount)
       .then(res => {
         that.operating = false;
         let response = res.data || {};
         if (response.code != 200) {
           tip.error('修改商品数量失败');
+          that.shopcartList[index].count = oriCount;
+          that.updateShopCartList(that.shopcartList);
         }
       });
 
-    // 购物车数据
-    this.shopcartList[index].count = count;
+    this.shopcartList[index].count = targetCount;
     this.updateShopCartList(this.shopcartList);
   }
 
-  async increaseShopCartCount(shopcartid, count, index) {
+  checkShopCart(shopcartid, itemIndex, oriCheckStatus) {
+    let targetCheckStatus = !oriCheckStatus;
     let that = this;
     shopcartapi
-      .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, count)
+      .checkShopCartItem(GlobalData.getUserId(), shopcartid, targetCheckStatus)
       .then(res => {
         that.operating = false;
         let response = res.data || {};
         if (response.code != 200) {
-          tip.error('修改商品数量失败');
+          tip.error('勾选失败');
+          that.shopcartList[itemIndex].ischecked = oriCheckStatus;
+          that.updateShopCartList(that.shopcartList);
         }
       });
-
-    // 购物车数据
-    this.shopcartList[index].count = count;
-    this.updateShopCartList(this.shopcartList);
-  }
-
-  async checkShopCart(shopcartid, itemIndex, ischecked) {
-    let targetCheckStatus = !ischecked;
-    shopcartapi.checkShopCartItem(
-      GlobalData.getUserId(),
-      shopcartid,
-      targetCheckStatus
-    );
 
     this.shopcartList[itemIndex].ischecked = targetCheckStatus;
     this.updateShopCartList(this.shopcartList);
   }
 
   triggerAllShopCarts() {
-    let targetCheckStatus = !this.allChecked;
-    shopcartapi.checkAllShopCartItem(GlobalData.getUserId(), targetCheckStatus);
+    let oriCheckStatus = this.allChecked;
+    let targetCheckStatus = !oriCheckStatus;
+    let that = this;
+    shopcartapi
+      .checkAllShopCartItem(GlobalData.getUserId(), targetCheckStatus)
+      .then(res => {
+        that.operating = false;
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('全选失败');
+          that.shopcartList.forEach(element => {
+            element.ischecked = oriCheckStatus;
+          });
+          that.updateShopCartList(that.shopcartList);
+        }
+      });
+
     this.shopcartList.forEach(element => {
       element.ischecked = targetCheckStatus;
     });
@@ -142,14 +149,24 @@ export default class shopCart extends wepy.component {
   }
 
   deleteShopCart(shopcart) {
-    shopcartapi.deleteShopCartItem(GlobalData.getUserId(), shopcart.id);
-    let retList = [];
-    this.shopcartList.forEach(element => {
-      if (element.id != shopcart.id) {
-        retList.push(element);
-      }
-    });
-    this.updateShopCartList(retList);
+    let that = this;
+    shopcartapi
+      .deleteShopCartItem(GlobalData.getUserId(), shopcart.id)
+      .then(res => {
+        that.operating = false;
+        let response = res.data || {};
+        if (response.code == 200) {
+          let retList = [];
+          that.shopcartList.forEach(element => {
+            if (element.id != shopcart.id) {
+              retList.push(element);
+            }
+          });
+          that.updateShopCartList(retList);
+        } else {
+          tip.error('删除失败');
+        }
+      });
   }
 
   methods = {
@@ -164,14 +181,25 @@ export default class shopCart extends wepy.component {
       });
     },
     triggerCheckedAll() {
+      if (this.operating) {
+        return;
+      }
+      this.operating = true;
       this.triggerAllShopCarts();
     },
     deleteShopCartItem(shopcart) {
+      if (this.operating) {
+        return;
+      }
+      this.operating = true;
       this.deleteShopCart(shopcart);
     },
     checkItem(index, shopcartid) {
-      let ischecked = this.shopcartList[index].ischecked;
-      this.checkShopCart(shopcartid, index, ischecked);
+      if (this.operating) {
+        return;
+      }
+      this.operating = true;
+      this.checkShopCart(shopcartid, index, this.shopcartList[index].ischecked);
     },
     decreaseItemCount(index, shopcartid) {
       if (this.operating) {
@@ -185,7 +213,7 @@ export default class shopCart extends wepy.component {
         this.operating = false;
         return;
       }
-      this.decreaseShopCartCount(shopcartid, count, index);
+      this.updateShopCartItemCount(shopcartid, index, count + 1, count);
     },
     increaseItemCount(index, shopcartid) {
       if (this.operating) {
@@ -194,7 +222,7 @@ export default class shopCart extends wepy.component {
       this.operating = true;
       let count = this.shopcartList[index].count;
       count++;
-      this.increaseShopCartCount(shopcartid, count, index);
+      this.updateShopCartItemCount(shopcartid, index, count - 1, count);
     }
   };
 }
@@ -202,125 +230,145 @@ export default class shopCart extends wepy.component {
 <style lang="less">
 .goodsList {
   margin-bottom: 100rpx;
+  .list_box {
+    height: 250rpx;
+    .goods-info {
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      padding: 70rpx 0 30rpx 0rpx;
+      box-sizing: border-box;
+      align-items: center;
+      position: relative;
+      .img-box {
+        width: 160rpx;
+        height: 160rpx;
+        overflow: hidden;
+        margin-right: 20rpx;
+        background-color: #d8d8d8;
+        margin-left: 100rpx;
+        .img {
+          width: 160rpx;
+          height: 160rpx;
+        }
+      }
+      .text-box {
+        width: 440rpx;
+        position: relative;
+        .goods-title {
+          font-size: 28rpx;
+          color: #000;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          overflow: hidden;
+          padding: 10rpx 20rpx 5rpx 0;
+        }
+        .goods-price {
+          font-size: 26rpx;
+          color: #e64340;
+        }
+        .buy-num {
+          width: 164rpx;
+          height: 48rpx;
+          line-height: 48rpx;
+          position: absolute;
+          right: 30rpx;
+          bottom: 0;
+          display: flex;
+          /*justify-content: space-between;*/
+          font-size: 24rpx;
+          text-align: center;
+          .jian-btn {
+            width: 48rpx;
+            height: 100%;
+            border-left: 1rpx solid #ccc;
+            border-bottom: 1rpx solid #ccc;
+            border-top: 1rpx solid #ccc;
+            border-bottom-left-radius: 6rpx;
+            border-top-left-radius: 6rpx;
+          }
+          .jian-btn.disabled {
+            background-color: #f5f5f9;
+            border-left: 1rpx solid #eee;
+            border-bottom: 1rpx solid #eee;
+            border-top: 1rpx solid #eee;
+            color: #ccc;
+          }
+          .jia-btn {
+            width: 48rpx;
+            height: 100%;
+            border-right: 1rpx solid #ccc;
+            border-bottom: 1rpx solid #ccc;
+            border-top: 1rpx solid #ccc;
+            border-bottom-right-radius: 6rpx;
+            border-top-right-radius: 6rpx;
+          }
+          input {
+            width: 68rpx;
+            height: 48rpx;
+            min-height: 48rpx;
+            text-align: center;
+            font-size: 24rpx;
+            border: 1rpx solid #ccc;
+          }
+          .jia-btn.disabled {
+            background-color: #f5f5f9;
+            border-right: 1rpx solid #eee;
+            border-bottom: 1rpx solid #eee;
+            border-top: 1rpx solid #eee;
+            color: #ccc;
+          }
+        }
+      }
+    }
+  }
 }
-.goods-info {
-  border-bottom: 1px solid #eee;
-  display: flex;
-  justify-content: space-between;
-  padding: 70rpx 0 30rpx 0rpx;
-  box-sizing: border-box;
-  align-items: center;
-  position: relative;
-  .icon_check {
-    position: absolute;
-    width: 100%;
-    height: 165rpx;
-    line-height: 165rpx;
+.empty_cart {
+  margin-top: 100rpx;
+  .empty_cart_img {
+    width: 220rpx;
+    height: 177rpx;
+    display: block;
+    margin: 0 auto;
   }
-  .img-box {
-    width: 160rpx;
-    height: 160rpx;
-    overflow: hidden;
-    margin-right: 20rpx;
-    background-color: #d8d8d8;
-    margin-left: 100rpx;
-  }
-  .text-box {
-    width: 440rpx;
-    position: relative;
-  }
-  .text-box .goods-title {
-    font-size: 28rpx;
-    color: #000;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-    padding: 10rpx 20rpx 5rpx 0;
-  }
-  .text-box .lable {
-    font-size: 26rpx;
+  .empty_cart_text {
+    font-size: 32rpx;
     color: #999;
-    height: 38rpx;
-    line-height: 38rpx;
-    margin: 8rpx 0 25rpx 0;
-  }
-  .lable {
-    display: flex;
-    align-items: center;
-    .goods-label {
-      font-size: 26rpx;
-    }
-    .goods-lable {
-      font-size: 26rpx;
-    }
-    .bo-label {
-      font-size: 24rpx;
-      background: #e64340;
-      padding: 2rpx 10rpx;
-      color: #fff;
-      border-radius: 2rpx;
-      margin-left: 10rpx;
-    }
-  }
-  .text-box .goods-price {
-    font-size: 26rpx;
-    color: #e64340;
-  }
-  .text-box .buy-num {
-    width: 164rpx;
-    height: 48rpx;
-    line-height: 48rpx;
-    position: absolute;
-    right: 30rpx;
-    bottom: 0;
-    display: flex;
-    /*justify-content: space-between;*/
-    font-size: 24rpx;
+    margin-top: 20rpx;
     text-align: center;
   }
-  .text-box .buy-num .jian-btn {
-    width: 48rpx;
-    height: 100%;
-    border-left: 1rpx solid #ccc;
-    border-bottom: 1rpx solid #ccc;
-    border-top: 1rpx solid #ccc;
-    border-bottom-left-radius: 6rpx;
-    border-top-left-radius: 6rpx;
-  }
-  .text-box .buy-num .jian-btn.disabled {
-    background-color: #f5f5f9;
-    border-left: 1rpx solid #eee;
-    border-bottom: 1rpx solid #eee;
-    border-top: 1rpx solid #eee;
-    color: #ccc;
-  }
-  .text-box .buy-num .jia-btn {
-    width: 48rpx;
-    height: 100%;
-    border-right: 1rpx solid #ccc;
-    border-bottom: 1rpx solid #ccc;
-    border-top: 1rpx solid #ccc;
-    border-bottom-right-radius: 6rpx;
-    border-top-right-radius: 6rpx;
-  }
-  .text-box .buy-num .jia-btn.disabled {
-    background-color: #f5f5f9;
-    border-right: 1rpx solid #eee;
-    border-bottom: 1rpx solid #eee;
-    border-top: 1rpx solid #eee;
-    color: #ccc;
-  }
-  .text-box .buy-num input {
-    width: 68rpx;
-    height: 48rpx;
-    min-height: 48rpx;
-    text-align: center;
-    font-size: 24rpx;
-    border: 1rpx solid #ccc;
-  }
-  .img-box .img {
-    width: 160rpx;
-    height: 160rpx;
+  .shop_btn {
+    display: flex;
+    width: 100%;
+    .block {
+      margin: 0 auto;
+      text-align: center;
+      display: flex;
+      align-items: center;
+    }
+    .btn_group {
+      display: flex;
+      align-items: center;
+      padding-top: 100rpx;
+      .btn {
+        font-size: 30rpx;
+        padding: 22rpx 55rpx;
+        text-align: center;
+        margin: 0 auto;
+        width: 100%;
+        -moz-border-radius: 10rpx;
+        /* Firefox */
+        -webkit-border-radius: 10rpx;
+        /* Safari 和 Chrome */
+        border-radius: 10rpx;
+        /* Opera 10.5+, 以及使用了IE-CSS3的IE浏览器 */
+      }
+      .get_store {
+        background: #ed601b;
+        color: #fff;
+        margin-left: 1rpx;
+      }
+    }
   }
 }
 .jiesuan-box {
@@ -335,89 +383,38 @@ export default class shopCart extends wepy.component {
   border-top: 1px solid #eee;
   background-color: #fff;
   z-index: 9999;
-}
-.jiesuan-box .to-pay-btn {
-  width: 240rpx;
-  text-align: center;
-  line-height: 100rpx;
-  background-color: #e64340;
-  font-size: 32rpx;
-  color: #ffffff;
-}
-.jiesuan-box .to-pay-btn.no-select {
-  background-color: #ccc;
-}
-.jiesuan-box .left-price {
-  display: flex;
-  width: 510rpx;
-  justify-content: space-between;
-  padding: 0 30rpx 0 20rpx;
-  font-size: 28rpx;
-  box-sizing: border-box;
-  align-items: center;
-}
-.jiesuan-box .total {
-  color: #e64340;
-}
-.list_box {
-  height: 250rpx;
-}
-.all_select_box {
-  width: 200rpx;
-  height: 100%;
-  display: flex;
-  align-items: center;
-}
-.all_select {
-  flex: 1;
-  padding-left: 10rpx;
-}
-.empty_cart {
-  margin-top: 100rpx;
-  .shop_btn {
+  .left-price {
     display: flex;
-    width: 100%;
+    width: 510rpx;
+    justify-content: space-between;
+    padding: 0 30rpx 0 20rpx;
+    font-size: 28rpx;
+    box-sizing: border-box;
+    align-items: center;
+    .all_select_box {
+      width: 200rpx;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      .all_select {
+        flex: 1;
+        padding-left: 10rpx;
+      }
+    }
+    .total {
+      color: #e64340;
+    }
   }
-  .block {
-    margin: 0 auto;
+  .to-pay-btn {
+    width: 240rpx;
     text-align: center;
-    display: flex;
-    align-items: center;
+    line-height: 100rpx;
+    background-color: #e64340;
+    font-size: 32rpx;
+    color: #ffffff;
   }
-  .btn_group {
-    display: flex;
-    align-items: center;
-    padding-top: 100rpx;
-    .btn {
-      font-size: 30rpx;
-      padding: 22rpx 55rpx;
-      text-align: center;
-      margin: 0 auto;
-      width: 100%;
-      -moz-border-radius: 10rpx;
-      /* Firefox */
-      -webkit-border-radius: 10rpx;
-      /* Safari 和 Chrome */
-      border-radius: 10rpx;
-      /* Opera 10.5+, 以及使用了IE-CSS3的IE浏览器 */
-    }
-    .get_store {
-      background: #ed601b;
-      color: #fff;
-      margin-left: 1rpx;
-    }
+  .to-pay-btn.no-select {
+    background-color: #ccc;
   }
-}
-.empty_cart_img {
-  width: 220rpx;
-  height: 177rpx;
-  display: block;
-  margin: 0 auto;
-}
-.empty_cart_text {
-  font-size: 32rpx;
-  color: #999;
-  margin-top: 20rpx;
-  text-align: center;
 }
 </style>

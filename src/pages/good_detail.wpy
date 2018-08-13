@@ -180,6 +180,7 @@ export default class GoodDetail extends wepy.page {
           tip.error('该商品无法加入购物车');
           return;
         }
+        GlobalData.addShopCart(response.data);
         that.winHeight = '100%';
         that.animation.height(0).step();
         that.animationData = that.animation.export();
@@ -199,6 +200,7 @@ export default class GoodDetail extends wepy.page {
 
     let response = json.data || {};
     if (response.code == 200) {
+      GlobalData.addShopCart(response.data);
       this.winHeight = '100%';
       this.animation.height(0).step();
       this.setData({
@@ -223,6 +225,7 @@ export default class GoodDetail extends wepy.page {
     });
     let response = json.data || {};
     if (response.code == 200) {
+      GlobalData.addShopCart(response.data);
       this.winHeight = '100%';
       this.animation.height(0).step();
       this.setData({
