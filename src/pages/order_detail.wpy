@@ -67,9 +67,7 @@ import {
   ORDERSTATUS_PREORDER,
   ORDERSTATUS_UNSTART,
   ORDERSTATUS_DOING,
-  ORDERSTATUS_FINISHED,
-  ADDRESS,
-  SHOPORDER_ID
+  ORDERSTATUS_FINISHED
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import shoporderapi from '../api/shoporderapi';
@@ -101,10 +99,12 @@ export default class OrderDetail extends wepy.page {
 
   onShow() {
     // 处理订单还未处理前修改地址的逻辑
-    let recieveAddress = wepy.getStorageSync(ADDRESS);
-    let shoporderid = wepy.getStorageSync(SHOPORDER_ID);
+    let recieveAddress = GlobalData.getSelectedRecieveAddress();
+    let shoporderid = GlobalData.getCurShopOrderId();
     if (shoporderid && recieveAddress) {
       this.shoporder.recieveAddress = recieveAddress;
+      GlobalData.clearSelectedRecieveAddress();
+      GlobalData.clearCurShopOrderId();
     }
   }
 

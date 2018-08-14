@@ -1,6 +1,6 @@
 <template>
   <view class="messages">
-    <scroll-view scroll-y="true" class="swiper-item-box" style="height:{{winHeight}}px">
+     <!--加载更多时动画-->
       <repeat for="{{messageList}}" key="index" index="index" item="item">
         <view class="list_block">
           <view class="list_item">
@@ -17,21 +17,18 @@
             <view class="list_footer">
               {{item.createTime}}
             </view>
-          </view>
+          </view> 
         </view>
       </repeat>
-      <!--加载更多时动画-->
-      <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+      <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
       <!--暂无数据显示-->
       <placeholder :show.sync="is_empty" message="暂无消息"></placeholder>
-    </scroll-view>
   </view>
 </template>
 <script>
 import wepy from 'wepy';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
-import { SYSTEM_INFO } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import usermessageapi from '../api/usermessageapi';
 import tip from '../utils/tip';
@@ -45,50 +42,48 @@ export default class Messages extends wepy.page {
     placeholder: Placeholder
   };
   data = {
-    winHeight: 0,
     messageList: [],
     totalpage: 1,
-    currentpage: 0,
+    currentpage: 1,
     pagesize: 10,
     is_empty: true,
-    showLoading: true,
+    gettingmore: false,
     // 防止重复加载
     inRequesting: false
   };
 
   onLoad() {
-    // 设置滚动高度
-    let systemInfo = wepy.getStorageSync(SYSTEM_INFO);
-    this.winHeight = systemInfo.windowHeight;
-    this.getUserMessage();
+    this.getUserMessage(true, false, false);
   }
 
   onPullDownRefresh() {
-    wx.showNavigationBarLoading();
-    this.messageList = [];
-    this.is_empty = true;
-    this.showLoading = true;
-    this.currentpage = 0;
-    this.totalpage = 1;
-    this.getUserMessage();
-  }
-  onReachBottom() {
-    this.showLoading = true;
-    this.getUserMessage();
+    this.getUserMessage(false, true, false);
   }
 
-  async getUserMessage() {
-    if (this.currentpage >= this.totalpage) {
-      this.showLoading = false;
-      wx.hideNavigationBarLoading();
-      tip.success('已经到底啦');
-      return;
-    }
+  onReachBottom() {
+    this.getUserMessage(false, false, true);
+  }
+
+  getUserMessage(init, pulldown, more) {
     if (this.inRequesting) {
       return;
     }
-    this.inRequest = true;
-    this.currentpage += 1;
+    if (more) {
+      if (this.currentpage >= this.totalpage) {
+        tip.success('已经到底啦');
+        return;
+      } else {
+        this.gettingmore = true;
+        this.currentpage++;
+      }
+    }
+
+    if (init || pulldown) {
+      this.currentpage = 1;
+      this.totalpage = 1;
+    }
+    wx.showNavigationBarLoading();
+    this.inRequesting = true;
     let that = this;
 
     usermessageapi
@@ -98,9 +93,12 @@ export default class Messages extends wepy.page {
         this.pagesize
       )
       .then(res => {
-        that.showLoading = false;
+        that.gettingmore = false;
         that.inRequesting = false;
         wx.hideNavigationBarLoading();
+        if (pulldown) {
+          wx.stopPullDownRefresh();
+        }
         let response = res.data || {};
         if (response.code != 200) {
           return;
@@ -108,10 +106,14 @@ export default class Messages extends wepy.page {
         let getUserMessageListResponse = response.data;
         that.currentpage = getUserMessageListResponse.currentpage;
         that.totalpage = getUserMessageListResponse.totalpage;
-        that.messageList = [
-          ...that.messageList,
-          ...getUserMessageListResponse.dataList
-        ];
+        if (init || pulldown) {
+          that.messageList = getUserMessageListResponse.dataList;
+        } else {
+          that.messageList = [
+            ...that.messageList,
+            ...getUserMessageListResponse.dataList
+          ];
+        }
         if (that.messageList.length != 0) {
           that.is_empty = false;
         } else {

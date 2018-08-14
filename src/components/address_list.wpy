@@ -30,7 +30,6 @@
 <script>
 import wepy from 'wepy';
 import SwipeDelete from './common/swipe-delete';
-import { ADDRESS, SHOPORDER_ID } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import shoporderapi from '../api/shoporderapi';
 import userapi from '../api/userapi';
@@ -60,11 +59,14 @@ export default class AddressList extends wepy.component {
   }
 
   setRecieveAddressList(list) {
-    if (list == undefined) return;
+    if (list == undefined) {
+      return;
+    }
     this.addressList = list;
     this.$apply();
   }
-  async delUserAddress(addressid) {
+
+  delUserAddress(addressid) {
     let that = this;
     userapi
       .deprecateRecieveAddress(GlobalData.getUserId(), addressid)
@@ -78,6 +80,7 @@ export default class AddressList extends wepy.component {
         that.$emit('deleteRecieveAddress', addressid);
       });
   }
+
   methods = {
     addRecieveAddress() {
       // 0 列表 1新增 2编辑
@@ -90,23 +93,31 @@ export default class AddressList extends wepy.component {
     deleteRecieveAddress(recieveAddress) {
       this.delUserAddress(recieveAddress.id);
     },
-    async selectRecieveAddress(recieveAddress) {
+    selectRecieveAddress(recieveAddress) {
       if (this.type == 'previeworder') {
-        wepy.setStorageSync(ADDRESS, recieveAddress);
+        GlobalData.setSelectedRecieveAddress(recieveAddress);
         wepy.navigateBack({
           delta: 1
         });
       } else if (this.type == 'shoporder') {
-        shoporderapi.updateUserShopOrderRecieveAddress(
-          GlobalData.getUserId(),
-          this.shoporderid,
-          recieveAddress.id
-        );
-        wepy.setStorageSync(SHOPORDER_ID, this.shoporderid);
-        wepy.setStorageSync(ADDRESS, recieveAddress);
-        wepy.navigateBack({
-          delta: 1
-        });
+        shoporderapi
+          .updateUserShopOrderRecieveAddress(
+            GlobalData.getUserId(),
+            this.shoporderid,
+            recieveAddress.id
+          )
+          .then(res => {
+            let response = res.data || {};
+            if (response.code == 200) {
+              GlobalData.setCurShopOrderId(this.shoporderid);
+              GlobalData.setSelectedRecieveAddress(recieveAddress);
+              wepy.navigateBack({
+                delta: 1
+              });
+            } else {
+              tip.error('修改订单收货地址失败');
+            }
+          });
       }
     }
   };

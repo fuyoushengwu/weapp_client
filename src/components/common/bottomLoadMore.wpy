@@ -1,7 +1,7 @@
 <template>
   <view class="load_more" wx:if="{{show}}">
     <image src="../../images/loadding.gif" />
-    <text>正在加载中</text>
+    <text>{{message}}</text>
   </view>
 </template>
 
@@ -12,6 +12,10 @@ export default class BottomLoadMore extends wepy.component {
     show: {
       type: Boolean,
       default: false
+    },
+    message: {
+      type: String,
+      default: '正在加载中'
     }
   };
 }

@@ -75,7 +75,7 @@ export default class AddressEdit extends wepy.component {
     this.county = this.recieve_address.county;
     this.$apply();
   }
-  async editRecieveAddress(recieveAddress) {
+  editRecieveAddress(recieveAddress) {
     let that = this;
     userapi
       .updateRecieveAddress(GlobalData.getUserId(), this.addressid, {

@@ -95,46 +95,55 @@ export default class OrderItem extends wepy.component {
     shopItemList: ShopItemList
   };
   methods = {
-    async deleteShopOrder(shoporderid) {
-      shoporderapi.deleteUserShopOrder(GlobalData.getUserId(), shoporderid);
-      let tmpArray = [];
-      this.shoporderList.forEach(element => {
-        if (element.id != shoporderid) {
-          tmpArray.push(element);
-        }
-      });
-      this.shoporderList = tmpArray;
-      this.$emit('refreshShopOrderCount');
-      this.$apply();
+    deleteShopOrder(shoporderid) {
+      let that = this;
+      shoporderapi
+        .deleteUserShopOrder(GlobalData.getUserId(), shoporderid)
+        .then(res => {
+          let response = res.data || {};
+          if (response.code != 200) {
+            return;
+          }
+          let tmpArray = [];
+          that.shoporderList.forEach(element => {
+            if (element.id != shoporderid) {
+              tmpArray.push(element);
+            }
+          });
+          that.shoporderList = tmpArray;
+          that.$emit('refreshShopOrderCount');
+          that.$apply();
+        });
     },
-    async confirmShopOrder(shoporderid) {
-      let json = await shoporderapi.confirmUserShopOrderFinished(
-        GlobalData.getUserId(),
-        shoporderid
-      );
-      let response = json.data || {};
-      if (response.code != 200) {
-        tip.error('订单确认失败');
-        return;
-      }
-      let confirmResponse = response.data;
-      let tipContent = '订单确认成功';
-      if (confirmResponse.genericScore > 0) {
-        tipContent += `,恭喜获得${confirmResponse.genericScore}分用户积分`;
-      }
-      if (confirmResponse.voucherScore) {
-        tipContent += `和${confirmResponse.voucherScore}分专用积分`;
-      }
-      tip.alert(tipContent);
-      let tmpArray = [];
-      this.shoporderList.forEach(element => {
-        if (element.id != shoporderid) {
-          tmpArray.push(element);
-        }
-      });
-      this.shoporderList = tmpArray;
-      this.$emit('refreshShopOrderCount');
-      this.$apply();
+    confirmShopOrder(shoporderid) {
+      let that = this;
+      shoporderapi
+        .confirmUserShopOrderFinished(GlobalData.getUserId(), shoporderid)
+        .then(res => {
+          let response = res.data || {};
+          if (response.code != 200) {
+            tip.error('订单确认失败');
+            return;
+          }
+          let confirmResponse = response.data;
+          let tipContent = '订单确认成功';
+          if (confirmResponse.genericScore > 0) {
+            tipContent += `,恭喜获得${confirmResponse.genericScore}分用户积分`;
+          }
+          if (confirmResponse.voucherScore) {
+            tipContent += `和${confirmResponse.voucherScore}分专用积分`;
+          }
+          tip.alert(tipContent);
+          let tmpArray = [];
+          that.shoporderList.forEach(element => {
+            if (element.id != shoporderid) {
+              tmpArray.push(element);
+            }
+          });
+          that.shoporderList = tmpArray;
+          that.$emit('refreshShopOrderCount');
+          that.$apply();
+        });
     },
     showPickupAddress(pickupAddress) {
       let coordinate = pickupAddress.coordinate;

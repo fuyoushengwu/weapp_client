@@ -127,7 +127,6 @@
 import wepy from 'wepy';
 import swipeDelete from '../components/common/swipe-delete';
 import {
-  ADDRESS,
   SENDTYPE_UNKNOW,
   SENDTYPE_PICKUP,
   SENDTYPE_OWNSEND,
@@ -216,9 +215,9 @@ export default class ConfirmOrder extends wepy.page {
   }
 
   onShow() {
-    this.recieveAddress = wepy.getStorageSync(ADDRESS);
+    this.recieveAddress = GlobalData.getSelectedRecieveAddress();
     if (this.recieveAddress) {
-      wepy.removeStorageSync(ADDRESS);
+      GlobalData.clearSelectedRecieveAddress();
       this.is_exist_address = true;
     } else {
       this.getOrderDetailInfo();

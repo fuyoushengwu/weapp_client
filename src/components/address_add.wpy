@@ -55,7 +55,7 @@ export default class AddressAdd extends wepy.component {
   components = {
     areaPicker: AreaPicker
   };
-  async addRecieveAddress(recieveAddress) {
+  addRecieveAddress(recieveAddress) {
     let that = this;
     userapi
       .addUserRecieveAddress(GlobalData.getUserId(), {

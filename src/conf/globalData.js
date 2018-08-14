@@ -3,6 +3,17 @@ import { JWT_TOKEN, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils
 export default class GlobalData {
 
     /**
+     * 设置当前用户的JsonWebToken
+     * @param {*} jwtToken 
+     */
+    static setJWTToken(jwtToken) {
+        if (jwtToken) {
+            GlobalData.jwtToken = jwtToken;
+            wepy.setStorageSync(JWT_TOKEN, jwtToken);
+        }
+    }
+
+    /**
      * 获取当前用户的JsonWebToken
      */
     static getJWTToken() {
@@ -12,17 +23,6 @@ export default class GlobalData {
             GlobalData.jwtToken = result;
         }
         return result;
-    }
-
-    /**
-     * 设置当前用户的JsonWebToken
-     * @param {*} jwtToken 
-     */
-    static setJWTToken(jwtToken) {
-        if (jwtToken) {
-            GlobalData.jwtToken = jwtToken;
-            wepy.setStorageSync(JWT_TOKEN, jwtToken);
-        }
     }
 
     /**
@@ -41,6 +41,17 @@ export default class GlobalData {
     }
 
     /**
+     * 设置用户正在使用中的顶层条目ID
+     * @param {*} topclassifyid 
+     */
+    static setTopClassifyId(topclassifyid) {
+        if (topclassifyid) {
+            GlobalData.topclassifyid = topclassifyid;
+            wx.setStorageSync(TOP_CLASSIFY_ID, topclassifyid)
+        }
+    }
+
+    /**
      * 获取用户正在使用中的顶层条目ID
      */
     static getTopClassifyId() {
@@ -53,13 +64,13 @@ export default class GlobalData {
     }
 
     /**
-     * 设置用户正在使用中的顶层条目ID
-     * @param {*} topclassifyid 
+     * 设置用户正在使用的子条目ID
+     * @param {*} subclassifyid 
      */
-    static setTopClassifyId(topclassifyid) {
-        if (topclassifyid) {
-            GlobalData.topclassifyid = topclassifyid;
-            wx.setStorageSync(TOP_CLASSIFY_ID, topclassifyid)
+    static setSubClassifyId(subclassifyid) {
+        if (subclassifyid) {
+            GlobalData.subclassifyid = subclassifyid;
+            wx.setStorageSync(SUB_CLASSIFY_ID, subclassifyid)
         }
     }
 
@@ -76,15 +87,16 @@ export default class GlobalData {
     }
 
     /**
-     * 设置用户正在使用的子条目ID
-     * @param {*} subclassifyid 
+     * 设置用户信息
+     * @param {*} userInfo 
      */
-    static setSubClassifyId(subclassifyid) {
-        if (subclassifyid) {
-            GlobalData.subclassifyid = subclassifyid;
-            wx.setStorageSync(SUB_CLASSIFY_ID, subclassifyid)
+    static setUserInfo(userInfo) {
+        if (userInfo) {
+            GlobalData.userInfo = userInfo;
+            wx.setStorageSync(USER_INFO, userInfo);
         }
     }
+
 
     /**
      * 获取用户信息
@@ -104,32 +116,12 @@ export default class GlobalData {
     }
 
     /**
-     * 设置用户信息
-     * @param {*} userInfo 
-     */
-    static setUserInfo(userInfo) {
-        if (userInfo) {
-            GlobalData.userInfo = userInfo;
-            wx.setStorageSync(USER_INFO, userInfo);
-        }
-    }
-
-    /**
      * 清理用户信息
      */
     static clearUserInfo() {
         GlobalData.userInfo = undefined;
         wepy.removeStorageSync(USER_INFO);
     }
-
-    /**
-     * 获取用户ID
-     */
-    static getUserId() {
-        let userInfo = GlobalData.getUserInfo();
-        return userInfo.id;
-    }
-
 
     /**
      * 设置用户ID
@@ -144,12 +136,13 @@ export default class GlobalData {
     }
 
     /**
-     * 获取用户名
+     * 获取用户ID
      */
-    static getNickName() {
+    static getUserId() {
         let userInfo = GlobalData.getUserInfo();
-        return userInfo.nickname;
+        return userInfo.id;
     }
+
 
     /**
      * 设置用户名
@@ -165,11 +158,11 @@ export default class GlobalData {
     }
 
     /**
-     * 设置用户手机
+     * 获取用户名
      */
-    static getPhone() {
+    static getNickName() {
         let userInfo = GlobalData.getUserInfo();
-        return userInfo.phone;
+        return userInfo.nickname;
     }
 
     /**
@@ -178,7 +171,7 @@ export default class GlobalData {
      */
     static setPhone(phone) {
         if (phone) {
-            let userInfo = GlobalData.getUserInfo;
+            let userInfo = GlobalData.getUserInfo();
             userInfo.phone = phone;
             GlobalData.setUserInfo(userInfo);
         }
@@ -186,10 +179,11 @@ export default class GlobalData {
     }
 
     /**
-     * 获取购物车
+     * 设置用户手机
      */
-    static getShopCartList() {
-        return GlobalData.shopcartList;
+    static getPhone() {
+        let userInfo = GlobalData.getUserInfo();
+        return userInfo.phone;
     }
 
     /**
@@ -203,6 +197,13 @@ export default class GlobalData {
     }
 
     /**
+     * 获取购物车
+     */
+    static getShopCartList() {
+        return GlobalData.shopcartList;
+    }
+
+    /**
      * 添加购物车
      * @param {*} shopcart 
      */
@@ -212,6 +213,81 @@ export default class GlobalData {
         }
     }
 
+    /**
+     * 设置收货地址
+     * @param {*} recieveAddressList 
+     */
+    static setRecieveAddressList(recieveAddressList) {
+        if (recieveAddressList) {
+            GlobalData.recieveAddressList = recieveAddressList;
+            GlobalData.initRecieveAddressList = true;
+        }
+    }
+
+    /**
+     * 获取收货地址
+     */
+    static getRecieveAddressList() {
+        return GlobalData.recieveAddressList;
+    }
+
+    /**
+     * 添加收货地址
+     * @param {*} recieveAddress 
+     */
+    static addRecieveAddress(recieveAddress) {
+        if (recieveAddress) {
+            GlobalData.recieveAddressList.unshift(recieveAddress);
+        }
+    }
+
+    /**
+     * 设置address_list界面上被选中的地址
+     * @param {*} recieveAddress 
+     */
+    static setSelectedRecieveAddress(recieveAddress) {
+        if (recieveAddress) {
+            GlobalData.selectedRecieveAddress = recieveAddress;
+        }
+    }
+
+    /**
+     * 获取address_list界面上被选中的地址
+     */
+    static getSelectedRecieveAddress() {
+        return GlobalData.selectedRecieveAddress;
+    }
+
+    /**
+     * 清理address_list界面上被选中的地址
+     */
+    static clearSelectedRecieveAddress() {
+        GlobalData.selectedRecieveAddress = undefined;
+    }
+
+    /**
+     * 设置当前ShopOrder ID
+     * @param {*} curShopOrderId 
+     */
+    static setCurShopOrderId(curShopOrderId) {
+        if (curShopOrderId) {
+            GlobalData.curShopOrderId = curShopOrderId;
+        }
+    }
+
+    /**
+     * 获取当前ShopOrder ID
+     */
+    static getCurShopOrderId() {
+        return GlobalData.curShopOrderId;
+    }
+
+    /**
+     * 清理当前ShopOrder ID
+     */
+    static clearCurShopOrderId() {
+        GlobalData.curShopOrderId = undefined;
+    }
 
 }
 GlobalData.jwtToken = undefined;
@@ -219,3 +295,7 @@ GlobalData.topclassifyid = undefined;
 GlobalData.subclassifyid = undefined;
 GlobalData.userInfo = undefined;
 GlobalData.shopcartList = [];
+GlobalData.recieveAddressList = [];
+GlobalData.initRecieveAddressList = false;
+GlobalData.selectedRecieveAddress = undefined;
+GlobalData.curShopOrderId = undefined;

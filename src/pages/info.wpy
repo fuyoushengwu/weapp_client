@@ -107,7 +107,7 @@ export default class Info extends wepy.page {
     if (this.unreadcount == -1) {
       usermessageapi.getUserUnReadMessageCount(userInfo.id).then(res => {
         let response = res.data || {};
-        that.unreadcount = response.data || -1;
+        that.unreadcount = response.data;
         that.$apply();
       });
     }

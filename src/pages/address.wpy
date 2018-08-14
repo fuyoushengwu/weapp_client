@@ -26,7 +26,7 @@ export default class Address extends wepy.page {
     addressList: [],
     // 显示当前组件 0 列表 1新增 2编辑
     currentpage: 0,
-    // 哪个页面跳转过来的
+    // 哪个页面跳转过来
     type: ''
   };
   components = {
@@ -39,24 +39,32 @@ export default class Address extends wepy.page {
     this.type = option.type;
     this.$invoke('addressList', 'setShowType', this.type);
     this.$invoke('addressList', 'setShopOrderId', option.shoporderid);
+    if (!GlobalData.initRecieveAddressList) {
+      this.loadUserRecieveAddress();
+    }
   }
 
-  async loadUserRecieveAddress() {
+  onShow() {
+    // 当添加/修改收货地址后，重新进入该页面后,需要刷新数据
+    if (GlobalData.initRecieveAddressList) {
+      this.addressList = GlobalData.getRecieveAddressList();
+      this.$invoke('addressList', 'setRecieveAddressList', this.addressList);
+    }
+  }
+
+  loadUserRecieveAddress() {
     let that = this;
     userapi.getUserRecieveAddressList(GlobalData.getUserId()).then(res => {
       let response = res.data || {};
       if (response.code == 200) {
         that.addressList = response.data;
-        that.$invoke('addressList', 'setRecieveAddressList', this.addressList);
+        GlobalData.setRecieveAddressList(that.addressList);
+        that.$invoke('addressList', 'setRecieveAddressList', that.addressList);
       }
     });
   }
 
-  onShow() {
-    this.loadUserRecieveAddress();
-  }
-
-  async editRecieveAddress(addressid) {
+  editRecieveAddress(addressid) {
     this.addressList.forEach(element => {
       if (element.id == addressid) {
         this.$invoke('addressEdit', 'refresh', element);
@@ -73,6 +81,7 @@ export default class Address extends wepy.page {
         }
       });
       this.addressList = tmpList;
+      GlobalData.setRecieveAddressList(this.addressList);
     },
     addRecieveAddress(recieveAddress) {
       let isDef = recieveAddress.def;
@@ -84,6 +93,7 @@ export default class Address extends wepy.page {
         tmpList.push(element);
       });
       this.addressList = tmpList;
+      GlobalData.setRecieveAddressList(this.addressList);
     },
     updateRecieveAddress(recieveAddress) {
       let isDef = recieveAddress.def;
@@ -99,6 +109,7 @@ export default class Address extends wepy.page {
         }
       });
       this.addressList = tmpList;
+      GlobalData.setRecieveAddressList(this.addressList);
     },
     currentpage(cur, addressid) {
       this.currentpage = cur;

@@ -1,19 +1,14 @@
 <template>
-  <scroll-view scroll-y="true" class="swiper-item-box" style="height:{{winHeight}}px">
     <!--积分记录-->
     <pointsDetail :uservoucherList.sync="uservoucherList"></pointsDetail>
     <!--加载更多时动画-->
-    <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
-    <!--暂无数据显示-->
-    <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
-  </scroll-view>
+    <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
 </template>
 <script>
 import wepy from 'wepy';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import PointsDetail from '../components/points_detail';
-import { SYSTEM_INFO } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import couponapi from '../api/couponapi';
 import tip from '../utils/tip';
@@ -30,50 +25,48 @@ export default class PointsMore extends wepy.page {
   };
 
   data = {
-    winHeight: 0,
     uservoucherList: [],
-    is_empty: true,
-    showLoading: true,
-    currentpage: 0,
     totalpage: 1,
+    currentpage: 1,
     pagesize: 5,
+    is_empty: true,
+    gettingmore: false,
     // 防止重复加载
     inRequesting: false
   };
 
   onLoad() {
-    let systemInfo = wepy.getStorageSync(SYSTEM_INFO);
-    this.winHeight = systemInfo.windowHeight;
-    this.getUserPoint();
+    this.getUserPoint(true, false, false);
   }
 
   onPullDownRefresh() {
-    wx.showNavigationBarLoading();
-    this.uservoucherList = [];
-    this.is_empty = true;
-    this.showLoading = true;
-    this.currentpage = 0;
-    this.totalpage = 1;
-    this.getUserPoint();
+    this.getUserPoint(false, true, false);
   }
 
   onReachBottom() {
-    this.showLoading = true;
-    this.getUserPoit();
+    this.getUserPoint(false, false, true);
   }
 
-  async getUserPoint() {
-    if (this.currentpage >= this.totalpage) {
-      this.showLoading = false;
-      wx.hideNavigationBarLoading();
-      tip.success('已经到底啦');
-      return;
-    }
+  getUserPoint(init, pulldown, more) {
     if (this.inRequesting) {
       return;
     }
-    this.inRequest = true;
-    this.currentpage += 1;
+    if (more) {
+      if (this.currentpage >= this.totalpage) {
+        tip.success('已经到底啦');
+        return;
+      } else {
+        this.gettingmore = true;
+        this.currentpage++;
+      }
+    }
+
+    if (init || pulldown) {
+      this.currentpage = 1;
+      this.totalpage = 1;
+    }
+    wx.showNavigationBarLoading();
+    this.inRequesting = true;
     let that = this;
 
     couponapi
@@ -83,9 +76,12 @@ export default class PointsMore extends wepy.page {
         this.pagesize
       )
       .then(res => {
-        that.showLoading = false;
+        that.gettingmore = false;
         that.inRequesting = false;
         wx.hideNavigationBarLoading();
+        if (pulldown) {
+          wx.stopPullDownRefresh();
+        }
         let response = res.data || {};
         if (response.code != 200) {
           return;
@@ -93,10 +89,15 @@ export default class PointsMore extends wepy.page {
         let getUserVoucherListResponse = response.data;
         that.currentpage = getUserVoucherListResponse.currentpage;
         that.totalpage = getUserVoucherListResponse.totalpage;
-        that.uservoucherList = [
-          ...that.uservoucherList,
-          ...getUserVoucherListResponse.dataList
-        ];
+        if (init || pulldown) {
+          that.uservoucherList = getUserVoucherListResponse.dataList;
+        } else {
+          that.uservoucherList = [
+            ...that.uservoucherList,
+            ...getUserVoucherListResponse.dataList
+          ];
+        }
+
         if (that.uservoucherList.length != 0) {
           that.is_empty = false;
         } else {

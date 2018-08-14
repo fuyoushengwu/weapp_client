@@ -4,42 +4,41 @@ import tip from './tip';
 /**
  * 获取根据位置排序的门店信息
  */
-async function getStoreOrderedByDistance() {
-    let json = await storeapi.getInUseStoreList(1, 20);
-    let response = json.data || {};
-    if (response.code != 200) {
-        tip.error("获取门店信息失败");
-        return [];
-
-    }
-    let getStoreListResponse = response.data || {};
-    let stores = getStoreListResponse.dataList;
-
-    return new Promise((resolve, reject) => {
-        wx.getLocation({
-            type: 'gcj02',
-            success: function(res) {
-                stores.forEach((store, index) => {
-                    let distance = getCircleDistance(
-                        res.latitude,
-                        res.longitude,
-                        store.storeAddress.coordinate.latitude,
-                        store.storeAddress.coordinate.longitude
-                    );
-                    if (distance > 1000) {
-                        store.distance = (distance / 1000).toFixed(1) + ' km';
-                    } else {
-                        store.distance = distance.toFixed(1) + ' m';
-                    }
-                });
-                resolve(stores);
-            },
-            fail: function() {
-                resolve(stores);
-            }
+function getStoreOrderedByDistance() {
+    return storeapi.getInUseStoreList(1, 20).then(res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+            tip.error("获取门店信息失败");
+            return [];
+        }
+        let getStoreListResponse = response.data || {};
+        return getStoreListResponse.dataList || [];
+    }).then(stores => {
+        return new Promise((resolve, reject) => {
+            wx.getLocation({
+                type: 'gcj02',
+                success: function(res) {
+                    stores.forEach((store, index) => {
+                        let distance = getCircleDistance(
+                            res.latitude,
+                            res.longitude,
+                            store.storeAddress.coordinate.latitude,
+                            store.storeAddress.coordinate.longitude
+                        );
+                        if (distance > 1000) {
+                            store.distance = (distance / 1000).toFixed(1) + ' km';
+                        } else {
+                            store.distance = distance.toFixed(1) + ' m';
+                        }
+                    });
+                    resolve(stores);
+                },
+                fail: function() {
+                    resolve(stores);
+                }
+            });
         });
     });
-
 }
 
 

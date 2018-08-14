@@ -19,9 +19,12 @@ export default class Store extends wepy.page {
   components = {
     storecard: StoreCard
   };
-  async onLoad() {
-    this.stores = await util.getStoreOrderedByDistance();
-    this.$apply();
+  onLoad() {
+    let that = this;
+    util.getStoreOrderedByDistance().then(stores => {
+      that.stores = stores;
+      that.$apply();
+    });
   }
 }
 </script>

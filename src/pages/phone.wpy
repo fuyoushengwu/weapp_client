@@ -29,7 +29,7 @@ export default class Phone extends wepy.page {
     this.phone = GlobalData.getPhone() || '请输入手机号';
   }
 
-  async updatePhoneNumber(phone) {
+  updatePhoneNumber(phone) {
     let userInfo = GlobalData.getUserInfo();
     userInfo.phone = phone;
     userapi.updateUser(GlobalData.getUserId(), userInfo).then(res => {

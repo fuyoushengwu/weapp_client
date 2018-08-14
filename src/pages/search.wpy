@@ -5,7 +5,7 @@
         <!--矩阵商品列表模块-->
         <goodGridList :goodList.sync="goodList"></goodGridList>
         <!--加载更多时动画-->
-        <bottomLoadMore :show.sync="showLoading" message="正在加载"></bottomLoadMore>
+        <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
         <!--暂无数据显示-->
         <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
       </view>
@@ -36,18 +36,25 @@ export default class Search extends wepy.page {
   data = {
     // 当前商品对应的条目ID
     classifyid: undefined,
+    queryParam: {},
     // 商品列表
     goodList: [],
-    // 是否展示正在加载页面
-    showLoading: true,
+    totalpage: 1,
+    currentpage: 1,
+    pagesize: 15,
     // 商品列表为空
     is_empyt: true,
-    totalpage: 1,
-    currentpage: 0,
-    pagesize: 15,
+    // 是否展示正在加载页面
+    gettingmore: false,
     // 防止重复加载
     inRequesting: false
   };
+
+  setTitle(title) {
+    wepy.setNavigationBarTitle({
+      title: title
+    });
+  }
 
   onLoad(option) {
     this.setTitle(option.title);
@@ -57,42 +64,38 @@ export default class Search extends wepy.page {
     } else if (option.topClassifyid != undefined) {
       this.classifyid = option.topClassifyid;
     }
-    this.getClassifyGoods(this.classifyid);
-  }
 
-  setTitle(title) {
-    wepy.setNavigationBarTitle({
-      title: title
-    });
+    this.getClassifyGoods(true, false, false, this.classifyid, this.queryParam);
   }
 
   onPullDownRefresh() {
-    wx.showNavigationBarLoading();
-    this.goodList = [];
-    this.showLoading = true;
-    this.is_empty = true;
-    this.totalpage = 1;
-    this.currentpage = 0;
-    this.getClassifyGoods(this.classifyid);
+    this.getClassifyGoods(false, true, false, this.classifyid, this.queryParam);
   }
 
   onReachBottom() {
-    this.showLoading = true;
-    this.getClassifyGoods(this.classifyid);
+    this.getClassifyGoods(false, false, true, this.classifyid, this.queryParam);
   }
 
-  async getClassifyGoods(classifyid, queryParam = {}) {
-    if (this.currentpage >= this.totalpage) {
-      this.showLoading = false;
-      wx.hideNavigationBarLoading();
-      tip.success('已经到底啦');
-      return;
-    }
+  getClassifyGoods(init, pulldown, more, classifyid, queryParam = {}) {
     if (this.inRequesting) {
       return;
     }
+    if (more) {
+      if (this.currentpage >= this.totalpage) {
+        tip.success('已经到底啦');
+        return;
+      } else {
+        this.gettingmore = true;
+        this.currentpage++;
+      }
+    }
+
+    if (init || pulldown) {
+      this.currentpage = 1;
+      this.totalpage = 1;
+    }
+    wx.showNavigationBarLoading();
     this.inRequesting = true;
-    this.currentpage += 1;
     let that = this;
     goodapi
       .getClassifyGoodList(
@@ -105,21 +108,29 @@ export default class Search extends wepy.page {
         this.pagesize
       )
       .then(res => {
-        that.showLoading = false;
+        that.gettingmore = false;
         that.inRequesting = false;
         wx.hideNavigationBarLoading();
+        if (pulldown) {
+          wx.stopPullDownRefresh();
+        }
         let response = res.data || {};
         if (response.code != 200) {
-          tip.error('没有商品信息');
           return;
         }
+
         let getClassifyGoodListResponse = response.data;
         that.currentpage = getClassifyGoodListResponse.currentpage;
         that.totalpage = getClassifyGoodListResponse.totalpage;
-        that.goodList = [
-          ...that.goodList,
-          ...getClassifyGoodListResponse.dataList
-        ];
+        if (init || pulldown) {
+          that.goodList = getClassifyGoodListResponse.dataList;
+        } else {
+          that.goodList = [
+            ...that.goodList,
+            ...getClassifyGoodListResponse.dataList
+          ];
+        }
+
         that.goodList.forEach(good => {
           if (good.voucherId) {
             couponapi.getGoodVoucher(good.voucherId).then(res => {
@@ -143,12 +154,8 @@ export default class Search extends wepy.page {
 
   methods = {
     refresh(queryParam) {
-      this.goodList = [];
-      this.is_empyt = true;
-      this.showLoading = true;
-      this.totalpage = 1;
-      this.currentpage = 0;
-      this.getClassifyGoods(this.classifyid, queryParam);
+      this.queryParam = queryParam;
+      this.getClassifyGoods(true, false, false, this.classifyid, queryParam);
     }
   };
 }
