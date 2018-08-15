@@ -54,6 +54,9 @@
             <view class="money">应付款:
                 <text class="receive_money">{{shoporder.totalPrice}}</text>
             </view>
+             <view>
+                 <button @tap="homePage" class="button type_green">返回首页</button>
+            </view>
         </view>
     </view>
 </template>
@@ -126,6 +129,11 @@ export default class OrderDetail extends wepy.page {
   }
 
   methods = {
+    homePage() {
+      wepy.switchTab({
+        url: '/pages/classify'
+      });
+    },
     setAddress(shoporderid) {
       wepy.navigateTo({
         url: '/pages/address?type=shoporder&shoporderid=' + shoporderid

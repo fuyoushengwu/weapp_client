@@ -24,7 +24,10 @@ function wxRequest(url, params = {}, showload = true) {
             GlobalData.clearJWTToken();
         }
         return res;
-    });
+    }).catch(error => {
+        tip.loaded();
+        tip.error('操作执行超时');
+    });;
 }
 
 

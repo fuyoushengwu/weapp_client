@@ -209,7 +209,16 @@ export default class GlobalData {
      */
     static addShopCart(shopcart) {
         if (shopcart) {
-            GlobalData.shopcartList.unshift(shopcart);
+            let exist = false;
+            GlobalData.shopcartList.forEach(element => {
+                if (element.id == shopcart.id) {
+                    element.count = shopcart.count;
+                    exist = true;
+                }
+            });
+            if (!exist) {
+                GlobalData.shopcartList.unshift(shopcart);
+            }
         }
     }
 

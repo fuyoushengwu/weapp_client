@@ -27,9 +27,12 @@ export default class shopCart extends wepy.page {
     this.getShopCartItemList();
   }
   onShow() {
-    this.shopcartList = GlobalData.getShopCartList();
-    this.$invoke('shopCart', 'updateShopCartList', this.shopcartList);
+    if (GlobalData.getUserId()) {
+      this.shopcartList = GlobalData.getShopCartList();
+      this.$invoke('shopCart', 'updateShopCartList', this.shopcartList);
+    }
   }
+
   onReachBottom() {
     this.getShopCartItemList();
   }
@@ -40,7 +43,7 @@ export default class shopCart extends wepy.page {
     if (this.inRequesting) {
       return;
     }
-    this.inRequest = true;
+    this.inRequesting = true;
     this.currentpage += 1;
     let that = this;
     shopcartapi

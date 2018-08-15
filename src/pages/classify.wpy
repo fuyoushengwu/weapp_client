@@ -34,7 +34,8 @@ import classifyapi from '../api/classifyapi';
 import GlobalData from '../conf/globalData';
 export default class Classify extends wepy.page {
   config = {
-    navigationBarTitleText: '分类'
+    navigationBarTitleText: '分类',
+    enablePullDownRefresh: true
   };
 
   data = {
@@ -44,38 +45,36 @@ export default class Classify extends wepy.page {
     windowHeight: 0,
     // 顶层条目
     topClassifyList: [],
-    // 顶层条目是否已经初始化
-    topClassify_inited: false,
     // 子条目
     subClassifyList: [],
-    // 子条目是否已经初始化
-    subClassify_inited: false
+    inRequesting: false
   };
 
   onLoad() {
     let systemInfo = wx.getStorageSync(SYSTEM_INFO);
     this.windowHeight = systemInfo.windowHeight;
     this.topClassifyId = GlobalData.getTopClassifyId();
-    this.initTopClassify();
-    this.initSubClassify();
-  }
-
-  /**
-   * 初始化顶层条目
-   */
-  initTopClassify() {
-    if (this.topClassify_inited) {
-      return;
-    }
-    this.topClassify_inited = true;
     this.getTopClassify();
   }
+
+  onPullDownRefresh() {
+    this.getTopClassify();
+  }
+
   /**
    *  获取最顶层条目
    */
   getTopClassify() {
+    if (this.inRequesting) {
+      return;
+    }
+    this.inRequesting = true;
+    wx.showNavigationBarLoading();
     let that = this;
     classifyapi.getTopClassifyList().then(res => {
+      that.inRequesting = false;
+      wx.hideNavigationBarLoading();
+      wx.stopPullDownRefresh();
       let response = res.data || {};
       if (response.code == 200) {
         that.topClassifyList = response.data;
@@ -85,28 +84,19 @@ export default class Classify extends wepy.page {
   }
 
   /**
-   * 初始化子条目
-   */
-  initSubClassify() {
-    if (!this.topClassifyId) {
-      return;
-    }
-    if (this.subClassify_inited) {
-      return;
-    }
-    this.subClassify_inited = true;
-    this.getSubClassify();
-  }
-
-  /**
    * 获取子条目
    */
   getSubClassify() {
+    if (this.inRequesting) {
+      return;
+    }
     if (!this.topClassifyId) {
       return;
     }
+    this.inRequesting = true;
     let that = this;
     classifyapi.getSubClassifyList(this.topClassifyId).then(res => {
+      that.inRequesting = false;
       let response = res.data || {};
       if (response.code == 200) {
         that.subClassifyList = response.data;
@@ -117,6 +107,9 @@ export default class Classify extends wepy.page {
 
   methods = {
     changeTopClassify(id) {
+      if (this.inRequesting) {
+        return;
+      }
       this.topClassifyId = id;
       GlobalData.setTopClassifyId(id);
       this.getSubClassify();
@@ -145,7 +138,7 @@ export default class Classify extends wepy.page {
             classify.active = false;
           }
         });
-        this.initSubClassify();
+        this.getSubClassify();
       }
     }
   };

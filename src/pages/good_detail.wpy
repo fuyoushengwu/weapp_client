@@ -26,9 +26,14 @@
 
       <view class="detail-bottom">
         <view class="bottom-box">
-          <button open-type="contact" class="contact-box">
+          <view class="item" @tap="homePage">
+            <i class="iconfont icon-home"></i>
+            <view class="doc">首页</view>
+          </view>
+
+          <button open-type="contact" class="item" style="line-height:1;background-color:#FFFFFF;">
             <i class="iconfont icon-message"></i>
-            <text>客服</text>
+             <view class="doc">客服</view>
           </button>
       
           <block wx:if="{{good.count>0}}">
@@ -243,6 +248,11 @@ export default class GoodDetail extends wepy.page {
     }
   }
   methods = {
+    homePage() {
+      wepy.switchTab({
+        url: '/pages/classify'
+      });
+    },
     previewImage(src) {
       wx.previewImage({
         current: src, // 当前显示图片的http链接
