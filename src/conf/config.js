@@ -3,7 +3,8 @@
  */
 
 // 此处主机域名修改成腾讯云解决方案分配的域名
-var host = 'https://www.aijiamuyingfang.cn';
+// var host = 'https://www.aijiamuyingfang.cn';
+var host = 'http://192.168.0.203:8080'
 
 var config = {
 
@@ -23,7 +24,8 @@ var config = {
         // 上传图片接口
         uploadUrl: `${host}/weapp/upload`,
     },
-    appid: "wxbe3725e2fe517faa"
+    appid: "wxbe3725e2fe517faa",
+    appsecret: "02bc75f7860d5bd54e5302942a09b639"
 };
 
 module.exports = config;

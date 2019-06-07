@@ -3,7 +3,7 @@
   <scroll-view scroll-y="true" class="swiper-item-box">
     <view class="shop_item">
         <navigator class="list" wx:for="{{goodList}}" wx:key="item" 
-          url="/pages/good_detail?goodid={{item.id}}">
+          url="/pages/good_detail?good_id={{item.id}}">
             <view class="image_box">
                 <image src="{{item.coverImg}}"/>
             </view>

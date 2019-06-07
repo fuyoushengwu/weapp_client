@@ -24,7 +24,7 @@ export default class StoreCard extends wepy.component {
   methods = {
     goStoreInfo() {
       wx.navigateTo({
-        url: `/pages/store_detail?storeid=${this.store.id}`
+        url: `/pages/store_detail?store_id=${this.store.id}`
       });
     },
     goClassify() {

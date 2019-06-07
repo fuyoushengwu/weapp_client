@@ -21,7 +21,7 @@
 <script>
 import wepy from 'wepy';
 import GlobalData from '../conf/globalData';
-import userapi from '../api/userapi';
+import UserAPI from '../api/UserAPI';
 export default class Setting extends wepy.page {
   config = {
     navigationBarTitleText: '设置'
@@ -53,7 +53,7 @@ export default class Setting extends wepy.page {
       this.hasPhone = false;
     }
     let that = this;
-    userapi.getUserRecieveAddressList(GlobalData.getUserId()).then(res => {
+    UserAPI.getUserRecieveAddressList(GlobalData.getUsername()).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         return;

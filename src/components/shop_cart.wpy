@@ -1,33 +1,38 @@
 <template>
   <view>
     <view class="goodsList">
-      <repeat for="{{shopcartList}}" key="index" index="index" item="item">
+      <repeat for="{{shopCartList}}" key="index" index="index" item="item">
         <view class="list_box">
           <swipeDelete :swipeData="item" @delItem.user="deleteShopCartItem">
-              <view class="goods-info">
-                  <icon class="icon-check" type="success" color="{{item.ischecked?'red':'rgb(153,153,153)'}}" 
-                        @tap.stop="checkItem({{index}},{{item.id}})" size="20"/>
-                  <view class="img-box"><image class='img' src="{{item.good.coverImg}}"/></view>
-                  <view class="text-box">
-                      <view class="goods-title">
-                          <navigator url="/pages/good_detail?goodid={{item.good.id}}">
-                          {{item.good.name}}
-                          </navigator>
-                      </view>
-                      <view class="goods-price">{{item.good.price}}</view>
-                      <view class="buy-num">
-                          <view class="jian-btn" @tap.stop="decreaseItemCount({{index}},{{item.id}})">-</view>
-                          <input type="number"  value="{{item.count}}" disabled/>
-                          <view class="jia-btn" @tap.stop="increaseItemCount({{index}},{{item.id}})">+</view>
-                      </view>
-                  </view>
+            <view class="goods-info">
+              <icon
+                class="icon-check"
+                type="success"
+                color="{{item.checked?'red':'rgb(153,153,153)'}}"
+                @tap.stop="checkItem({{index}},{{item.id}})"
+                size="20"
+              />
+              <view class="img-box">
+                <image class="img" src="{{item.good.coverImg}}"/>
               </view>
+              <view class="text-box">
+                <view class="goods-title">
+                  <navigator url="/pages/good_detail?good_id={{item.good.id}}">{{item.good.name}}</navigator>
+                </view>
+                <view class="goods-price">{{item.good.price}}</view>
+                <view class="buy-num">
+                  <view class="jian-btn" @tap.stop="decreaseItemCount({{index}},{{item.id}})">-</view>
+                  <input type="number" value="{{item.count}}" disabled/>
+                  <view class="jia-btn" @tap.stop="increaseItemCount({{index}},{{item.id}})">+</view>
+                </view>
+              </view>
+            </view>
           </swipeDelete>
         </view>
       </repeat>
     </view>
-    
-    <view class="empty_cart" wx:if="{{shopcartList.length==0}}">
+
+    <view class="empty_cart" wx:if="{{shopCartList.length==0}}">
       <image src="../images/empty_cart.png" class="empyt_cart_img"/>
       <view class="empty_cart_text">购物车还是空的</view>
       <view class="shop_btn">
@@ -37,7 +42,7 @@
       </view>
     </view>
 
-    <view class="jiesuan-box" wx:if="{{shopcartList.length>0}}">
+    <view class="jiesuan-box" wx:if="{{shopCartList.length>0}}">
       <view class="left-price">
         <view @tap.stop="triggerCheckedAll" class="all_select_box">
           <icon type="success" size="20" color="{{allChecked?'red':'rgb(153,153,153)'}}"/>
@@ -53,11 +58,11 @@
 import wepy from 'wepy';
 import swipeDelete from './common/swipe-delete';
 import GlobalData from '../conf/globalData';
-import shopcartapi from '../api/shopcartapi';
+import ShopCartAPI from '../api/ShopCartAPI';
 import tip from '../utils/tip';
 export default class shopCart extends wepy.component {
   data = {
-    shopcartList: [],
+    shopCartList: [],
     // 购物车中商品合计价格
     totalPrice: 0,
     // 购物车中商品是否全选
@@ -73,12 +78,12 @@ export default class shopCart extends wepy.component {
     if (!list) {
       return;
     }
-    this.shopcartList = list;
-    GlobalData.setShopCartList(this.shopcartList);
+    this.shopCartList = list;
+    GlobalData.setShopCartList(this.shopCartList);
     this.allChecked = true;
     this.totalPrice = 0;
-    this.shopcartList.forEach(element => {
-      if (!element.ischecked) {
+    this.shopCartList.forEach(element => {
+      if (!element.checked) {
         this.allChecked = false;
       } else {
         this.totalPrice += element.count * element.good.price;
@@ -87,78 +92,82 @@ export default class shopCart extends wepy.component {
     this.$apply();
   }
 
-  updateShopCartItemCount(shopcartid, index, oriCount, targetCount) {
+  updateShopCartItemCount(shopCartId, index, oriCount, targetCount) {
     let that = this;
-    shopcartapi
-      .updateShopCartItemCount(GlobalData.getUserId(), shopcartid, targetCount)
-      .then(res => {
-        that.operating = false;
-        let response = res.data || {};
-        if (response.code != 200) {
-          tip.error('修改商品数量失败');
-          that.shopcartList[index].count = oriCount;
-          that.updateShopCartList(that.shopcartList);
-        }
-      });
+    ShopCartAPI.updateShopCartItemCount(
+      GlobalData.getUsername(),
+      shopCartId,
+      targetCount
+    ).then(res => {
+      that.operating = false;
+      let response = res.data || {};
+      if (response.code != 200) {
+        tip.error('修改商品数量失败');
+        that.shopCartList[index].count = oriCount;
+        that.updateShopCartList(that.shopCartList);
+      }
+    });
 
-    this.shopcartList[index].count = targetCount;
-    this.updateShopCartList(this.shopcartList);
+    this.shopCartList[index].count = targetCount;
+    this.updateShopCartList(this.shopCartList);
   }
 
-  checkShopCart(shopcartid, itemIndex, oriCheckStatus) {
+  checkShopCart(shopCartId, itemIndex, oriCheckStatus) {
     let targetCheckStatus = !oriCheckStatus;
     let that = this;
-    shopcartapi
-      .checkShopCartItem(GlobalData.getUserId(), shopcartid, targetCheckStatus)
-      .then(res => {
-        that.operating = false;
-        let response = res.data || {};
-        if (response.code != 200) {
-          tip.error('勾选失败');
-          that.shopcartList[itemIndex].ischecked = oriCheckStatus;
-          that.updateShopCartList(that.shopcartList);
-        }
-      });
+    ShopCartAPI.checkShopCartItem(
+      GlobalData.getUsername(),
+      shopCartId,
+      targetCheckStatus
+    ).then(res => {
+      that.operating = false;
+      let response = res.data || {};
+      if (response.code != 200) {
+        tip.error('勾选失败');
+        that.shopCartList[itemIndex].checked = oriCheckStatus;
+        that.updateShopCartList(that.shopCartList);
+      }
+    });
 
-    this.shopcartList[itemIndex].ischecked = targetCheckStatus;
-    this.updateShopCartList(this.shopcartList);
+    this.shopCartList[itemIndex].checked = targetCheckStatus;
+    this.updateShopCartList(this.shopCartList);
   }
 
   triggerAllShopCarts() {
     let oriCheckStatus = this.allChecked;
     let targetCheckStatus = !oriCheckStatus;
     let that = this;
-    shopcartapi
-      .checkAllShopCartItem(GlobalData.getUserId(), targetCheckStatus)
-      .then(res => {
-        that.operating = false;
-        let response = res.data || {};
-        if (response.code != 200) {
-          tip.error('全选失败');
-          that.shopcartList.forEach(element => {
-            element.ischecked = oriCheckStatus;
-          });
-          that.updateShopCartList(that.shopcartList);
-        }
-      });
-
-    this.shopcartList.forEach(element => {
-      element.ischecked = targetCheckStatus;
+    ShopCartAPI.checkAllShopCartItem(
+      GlobalData.getUsername(),
+      targetCheckStatus
+    ).then(res => {
+      that.operating = false;
+      let response = res.data || {};
+      if (response.code != 200) {
+        tip.error('全选失败');
+        that.shopCartList.forEach(element => {
+          element.checked = oriCheckStatus;
+        });
+        that.updateShopCartList(that.shopCartList);
+      }
     });
-    this.updateShopCartList(this.shopcartList);
+
+    this.shopCartList.forEach(element => {
+      element.checked = targetCheckStatus;
+    });
+    this.updateShopCartList(this.shopCartList);
   }
 
-  deleteShopCart(shopcart) {
+  deleteShopCart(shopCart) {
     let that = this;
-    shopcartapi
-      .deleteShopCartItem(GlobalData.getUserId(), shopcart.id)
-      .then(res => {
+    ShopCartAPI.deleteShopCartItem(GlobalData.getUsername(), shopCart.id).then(
+      res => {
         that.operating = false;
         let response = res.data || {};
         if (response.code == 200) {
           let retList = [];
-          that.shopcartList.forEach(element => {
-            if (element.id != shopcart.id) {
+          that.shopCartList.forEach(element => {
+            if (element.id != shopCart.id) {
               retList.push(element);
             }
           });
@@ -166,7 +175,8 @@ export default class shopCart extends wepy.component {
         } else {
           tip.error('删除失败');
         }
-      });
+      }
+    );
   }
 
   methods = {
@@ -187,42 +197,42 @@ export default class shopCart extends wepy.component {
       this.operating = true;
       this.triggerAllShopCarts();
     },
-    deleteShopCartItem(shopcart) {
+    deleteShopCartItem(shopCart) {
       if (this.operating) {
         return;
       }
       this.operating = true;
-      this.deleteShopCart(shopcart);
+      this.deleteShopCart(shopCart);
     },
-    checkItem(index, shopcartid) {
+    checkItem(index, shopCartId) {
       if (this.operating) {
         return;
       }
       this.operating = true;
-      this.checkShopCart(shopcartid, index, this.shopcartList[index].ischecked);
+      this.checkShopCart(shopCartId, index, this.shopCartList[index].checked);
     },
-    decreaseItemCount(index, shopcartid) {
+    decreaseItemCount(index, shopCartId) {
       if (this.operating) {
         return;
       }
       this.operating = true;
-      let count = this.shopcartList[index].count;
+      let count = this.shopCartList[index].count;
       if (count > 1) {
         count--;
       } else {
         this.operating = false;
         return;
       }
-      this.updateShopCartItemCount(shopcartid, index, count + 1, count);
+      this.updateShopCartItemCount(shopCartId, index, count + 1, count);
     },
-    increaseItemCount(index, shopcartid) {
+    increaseItemCount(index, shopCartId) {
       if (this.operating) {
         return;
       }
       this.operating = true;
-      let count = this.shopcartList[index].count;
+      let count = this.shopCartList[index].count;
       count++;
-      this.updateShopCartItemCount(shopcartid, index, count - 1, count);
+      this.updateShopCartItemCount(shopCartId, index, count - 1, count);
     }
   };
 }

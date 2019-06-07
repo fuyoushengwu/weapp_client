@@ -1,50 +1,26 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 /**
  * 获得用户未读消息数量
  *
- * @param {*} userid
+ * @param {*} username
  */
-function getUserUnReadMessageCount(userid) {
-    return wxRequest(`/user/${userid}/message/unread/count`)
+function getUserUnReadMessageCount(username) {
+    return new WXRequest().request(`/user-service/user/${username}/message/unread/count`)
 }
 
 /**
  * 分页获取用户消息
  * 
- * @param {*} userid
- * @param {*} currentpage
- * @param {*} pagesize
+ * @param {*} username
+ * @param {*} currentPage
+ * @param {*} pageSize
  */
-function getUserMessageList(userid, currentpage, pagesize) {
-    return wxRequest(`/user/${userid}/message?currentpage=${currentpage}&pagesize=${pagesize}`)
+function getUserMessageList(username, currentPage, pageSize) {
+    return new WXRequest().request(`/user-service/user/${username}/message?current_page=${currentPage}&page_size=${pageSize}`)
 }
 
-/**
- * 为用户创建消息
- *
- * @param {*} userid
- * @param {*} message
- */
-function createMessage(userid, message) {
-    return wxRequest(`/user/${userid}/message`, {
-        method: 'POST',
-        data: message
-    })
-}
-
-/**
- * 删除消息
- *
- * @param {*} userid
- * @param {*} messageid
- */
-function deleteMessage(userid, messageid) {
-    return wxRequest(`/user/${userid}/message/${messageid}`, { method: 'DELETE' })
-}
 module.exports = {
     getUserUnReadMessageCount,
-    getUserMessageList,
-    createMessage,
-    deleteMessage,
+    getUserMessageList
 }

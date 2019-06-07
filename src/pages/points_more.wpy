@@ -10,7 +10,7 @@ import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import PointsDetail from '../components/points_detail';
 import GlobalData from '../conf/globalData';
-import couponapi from '../api/couponapi';
+import CouponAPI from '../api/CouponAPI';
 import tip from '../utils/tip';
 export default class PointsMore extends wepy.page {
   config = {
@@ -27,8 +27,8 @@ export default class PointsMore extends wepy.page {
   data = {
     uservoucherList: [],
     totalpage: 1,
-    currentpage: 1,
-    pagesize: 5,
+    currentPage: 1,
+    pageSize: 5,
     is_empty: true,
     gettingmore: false,
     // 防止重复加载
@@ -52,28 +52,28 @@ export default class PointsMore extends wepy.page {
       return;
     }
     if (more) {
-      if (this.currentpage >= this.totalpage) {
+      if (this.currentPage >= this.totalpage) {
         tip.success('已经到底啦');
         return;
       } else {
         this.gettingmore = true;
-        this.currentpage++;
+        this.currentPage++;
       }
     }
 
     if (init || pulldown) {
-      this.currentpage = 1;
+      this.currentPage = 1;
       this.totalpage = 1;
     }
     wx.showNavigationBarLoading();
     this.inRequesting = true;
     let that = this;
 
-    couponapi
+    CouponAPI
       .getUserVoucherList(
-        GlobalData.getUserId(),
-        this.currentpage,
-        this.pagesize
+        GlobalData.getUsername(),
+        this.currentPage,
+        this.pageSize
       )
       .then(res => {
         that.gettingmore = false;
@@ -87,7 +87,7 @@ export default class PointsMore extends wepy.page {
           return;
         }
         let getUserVoucherListResponse = response.data;
-        that.currentpage = getUserVoucherListResponse.currentpage;
+        that.currentPage = getUserVoucherListResponse.currentPage;
         that.totalpage = getUserVoucherListResponse.totalpage;
         if (init || pulldown) {
           that.uservoucherList = getUserVoucherListResponse.dataList;

@@ -1,127 +1,150 @@
 <template>
-    <view class="confirm_order">
-        <view class="goodsList">
-            <repeat for="{{previeworderItemList}}" key="index" index="index" item="item">
-                <view class="list_box">
-                    <swipeDelete :swipeData="item" @delItem.user="deleteShopItem">
-                        <view class="goods-info">
-                            <view class="img-box">
-                                <image src="{{item.good.coverImg}}" class="img"/>
-                            </view>
-                            <view class="text-box">
-                                <view class="goods-title">{{item.good.name}}</view>
-                                <view class="goods-price">￥ {{item.good.price}}</view>
-                                <view class="buy-num">
-                                    <view class="jian-btn" @tap.stop="decreaseShopItemCount({{index}},{{item.id}})">-</view>
-                                    <input type="number" value="{{item.count}}" disabled/>
-                                    <view class="jia-btn " @tap.stop="increaseShopItemCount({{index}},{{item.id}})">+</view>
-                                </view>
-                            </view>
-                        </view>
-                        <view wx:if="{{item.msg}}">{{item.msg}}</view>
-                    </swipeDelete>
+  <view class="confirm_order">
+    <view class="goodsList">
+      <repeat for="{{previeworderItemList}}" key="index" index="index" item="item">
+        <view class="list_box">
+          <swipeDelete :swipeData="item" @delItem.user="deleteShopItem">
+            <view class="goods-info">
+              <view class="img-box">
+                <image src="{{item.good.coverImg}}" class="img"/>
+              </view>
+              <view class="text-box">
+                <view class="goods-title">{{item.good.name}}</view>
+                <view class="goods-price">￥ {{item.good.price}}</view>
+                <view class="buy-num">
+                  <view class="jian-btn" @tap.stop="decreaseShopItemCount({{index}},{{item.id}})">-</view>
+                  <input type="number" value="{{item.count}}" disabled/>
+                  <view class="jia-btn" @tap.stop="increaseShopItemCount({{index}},{{item.id}})">+</view>
                 </view>
-            </repeat>
-        </view>
-        <view class="spacing"/>
-
-        <view class="order_info">
-            <view class="block">
-                <view class="left">配送方式</view>
-                <picker @change="selectSendtype" range="{{sendtypeArray}}" range-key="name" value="{{sendtype}}">
-                    <view class="right">{{sendtype!=SENDTYPE_UNKNOW?sendtypeArray[sendtype].name:'请选择配送方式'}}</view>
-                </picker>
-            </view>
-            <view class="block" wx:if="{{sendtype==SENDTYPE_PICKUP}}">
-                <view class="left">取货门店</view>
-                <picker @change="selectPickupStore" range="{{pickupStoreArray}}" range-key="name" value="{{pickupStoreValue}}">
-                    <view class="right">{{pickupStoreValue!=-1?pickupStoreArray[pickupStoreValue].name:'请选择取货门店'}}</view>
-                </picker>
-            </view>
-            <view class="block" wx:if="{{sendtype==SENDTYPE_PICKUP}}">
-                <view class="left">取货时间</view>
-                <picker mode="time" @change="selectPickupTime" start="09:00" 
-                    end="21:00" value="{{pickupTimeStr}}">
-                  <view class="right">{{pickupTimeStr!=''?pickupTimeStr:'请设置取货时间'}}</view>
-                </picker>
-            </view>
-            <view class="block" wx:if="{{sendtype==SENDTYPE_OWNSEND||sendtype==SENDTYPE_THIRDSEND}}">
-                <view class="left">收货地址</view>
-                <view @tap="setAddress">
-                  <view class="right" wx:if="{{!is_exist_address}}">请设置收货地址</view>
-                  <view class="right" wx:else>
-                    <view>
-                      <text>{{recieveAddress.reciever}}</text>
-                      <text> {{recieveAddress.phone}}</text>
-                    </view>
-                    <view class="active_address">
-                      <text class="defult" wx:if="{{recieveAddress.def}}"> [默认]</text>
-                      {{recieveAddress.detail}}
-                    </view>
-                  </view>
-                </view>
-            </view>
-
-            <view class="block" wx:if="{{sendtype==SENDTYPE_THIRDSEND}}">
-                <view class="left">快递费:</view>
-                <view class="right input_box">{{sendPrice}}</view>
-            </view>
-
-            <view class="block">
-                <view class="left">买家留言:</view>
-                <view class="right input_box">
-                    <input @input="bindKeyInput" placeholder="对本次交易的说明"/>
-                </view>
-            </view>
-            
-            <view class="spacing"></view>
-            
-            <view class="block">
-              <view class="left total_jf">通用积分 \t可用{{userInfo.genericScore}}\t抵扣{{userInfo.genericScore/100}}元</view>
-              <view class="right"><input type="number" class="dk-jf" @input="jfInput" placeholder="输入抵扣积分"/></view>
-            </view>
-
-            <view class="spacing"></view>
-            
-            <view class="block">
-                <view class="left tongji">商品金额</view>
-                <view>
-                    <view class="right price">+￥{{totalGoodsPrice}}</view>
-                </view>
-            </view>
-            <view class="block" wx:if="{{genericScore>0}}">
-                <view class="left tongji">通用积分</view>
-                <view>
-                    <view class="right price">-￥{{genericScore/100}}</view>
-                </view>
-            </view>
-            <view class="block" wx:if="{{voucher_price>0}}">
-              <view class="left tongji" >专用积分</view>
-              <view>
-                <view class="right price">-￥{{voucher_price}}</view>
               </view>
             </view>
-            <view class="block" wx:if="{{sendPrice>0}}">
-              <view class="left tongji" >运费</view>
-              <view>
-                <view class="right price">+￥{{sendPrice}}</view>
-              </view>
-            </view>
-            <view class="block">
-              <view class="left tongji">应付</view>
-              <view>
-                <view class="right price">￥{{totalGoodsPrice-genericScore/100-voucher_price+sendPrice}}</view>
-              </view>
-            </view>
+            <view wx:if="{{item.msg}}">{{item.msg}}</view>
+          </swipeDelete>
         </view>
-
-        <view class="pay_box">
-            <form report-submit @submit="submitOrder">
-                <button form-type="submit" class="button type_green">{{orderstatus!=ORDERSTATUS_PREORDER?'确认':'预订'}}</button>
-            </form>
-        </view>
-
+      </repeat>
     </view>
+    <view class="spacing"/>
+
+    <view class="order_info">
+      <view class="block">
+        <view class="left">配送方式</view>
+        <picker
+          @change="selectSendType"
+          range="{{sendTypeArray}}"
+          range-key="name"
+          value="{{sendType}}"
+        >
+          <view class="right">{{sendType!=SENDTYPE_UNKNOW?sendTypeArray[sendType].name:'请选择配送方式'}}</view>
+        </picker>
+      </view>
+      <view class="block" wx:if="{{sendType==SENDTYPE_PICKUP}}">
+        <view class="left">取货门店</view>
+        <picker
+          @change="selectPickupStore"
+          range="{{pickupStoreArray}}"
+          range-key="name"
+          value="{{pickupStoreValue}}"
+        >
+          <view
+            class="right"
+          >{{pickupStoreValue!=-1?pickupStoreArray[pickupStoreValue].name:'请选择取货门店'}}</view>
+        </picker>
+      </view>
+      <view class="block" wx:if="{{sendType==SENDTYPE_PICKUP}}">
+        <view class="left">取货时间</view>
+        <picker
+          mode="time"
+          @change="selectPickupTime"
+          start="09:00"
+          end="21:00"
+          value="{{pickupTimeStr}}"
+        >
+          <view class="right">{{pickupTimeStr!=''?pickupTimeStr:'请设置取货时间'}}</view>
+        </picker>
+      </view>
+      <view class="block" wx:if="{{sendType==SENDTYPE_OWNSEND||sendType==SENDTYPE_THIRDSEND}}">
+        <view class="left">收货地址</view>
+        <view @tap="setAddress">
+          <view class="right" wx:if="{{!is_exist_address}}">请设置收货地址</view>
+          <view class="right" wx:else>
+            <view>
+              <text>{{recieveAddress.reciever}}</text>
+              <text>{{recieveAddress.phone}}</text>
+            </view>
+            <view class="active_address">
+              <text class="defult" wx:if="{{recieveAddress.def}}">[默认]</text>
+              {{recieveAddress.detail}}
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="block" wx:if="{{sendType==SENDTYPE_THIRDSEND}}">
+        <view class="left">快递费:</view>
+        <view class="right input_box">{{sendPrice}}</view>
+      </view>
+
+      <view class="block">
+        <view class="left">买家留言:</view>
+        <view class="right input_box">
+          <input @input="bindKeyInput" placeholder="对本次交易的说明"/>
+        </view>
+      </view>
+
+      <view class="spacing"></view>
+
+      <view class="block">
+        <view
+          class="left total_jf"
+        >通用积分 \t可用{{userInfo.genericScore}}\t抵扣{{userInfo.genericScore/100}}元</view>
+        <view class="right">
+          <input type="number" class="dk-jf" @input="jfInput" placeholder="输入抵扣积分"/>
+        </view>
+      </view>
+
+      <view class="spacing"></view>
+
+      <view class="block">
+        <view class="left tongji">商品金额</view>
+        <view>
+          <view class="right price">+￥{{totalGoodsPrice}}</view>
+        </view>
+      </view>
+      <view class="block" wx:if="{{genericScore>0}}">
+        <view class="left tongji">通用积分</view>
+        <view>
+          <view class="right price">-￥{{genericScore/100}}</view>
+        </view>
+      </view>
+      <view class="block" wx:if="{{voucher_price>0}}">
+        <view class="left tongji">专用积分</view>
+        <view>
+          <view class="right price">-￥{{voucher_price}}</view>
+        </view>
+      </view>
+      <view class="block" wx:if="{{sendPrice>0}}">
+        <view class="left tongji">运费</view>
+        <view>
+          <view class="right price">+￥{{sendPrice}}</view>
+        </view>
+      </view>
+      <view class="block">
+        <view class="left tongji">应付</view>
+        <view>
+          <view class="right price">￥{{totalGoodsPrice-genericScore/100-voucher_price+sendPrice}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="pay_box">
+      <form report-submit @submit="submitOrder">
+        <button
+          form-type="submit"
+          class="button type_green"
+        >{{orderstatus!=ORDERSTATUS_PREORDER?'确认':'预订'}}</button>
+      </form>
+    </view>
+  </view>
 </template>
 <script>
 import wepy from 'wepy';
@@ -137,11 +160,10 @@ import {
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import util from '../utils/util';
-import previewapi from '../api/previewapi';
-import shoporderapi from '../api/shoporderapi';
-import shopcartapi from '../api/shopcartapi';
-import couponapi from '../api/couponapi';
-import storeapi from '../api/storeapi';
+import PreviewAPI from '../api/PreviewAPI';
+import ShopOrderAPI from '../api/ShopOrderAPI';
+import ShopCartAPI from '../api/ShopCartAPI';
+import StoreAPI from '../api/StoreAPI';
 import tip from '../utils/tip';
 
 export default class ConfirmOrder extends wepy.page {
@@ -166,9 +188,9 @@ export default class ConfirmOrder extends wepy.page {
     sendPrice: 0,
     operating: false,
     // 商品Id
-    goodid: undefined,
+    goodId: undefined,
     // 送货方式
-    sendtypeArray: [
+    sendTypeArray: [
       {
         name: '到店自取'
       },
@@ -180,9 +202,9 @@ export default class ConfirmOrder extends wepy.page {
       }
     ],
     // 配送方式:0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
-    sendtype: SENDTYPE_UNKNOW,
+    sendType: SENDTYPE_UNKNOW,
 
-    // 订单状态:0:预订;1:未开始;2:进行中;3:已完成;4:订单超时
+    // 订单状态:0:未知类型,1:预订;2:未开始;3:进行中;4:已完成;5:订单超时
     orderstatus: ORDERSTATUS_UNKNOW,
 
     pickupStoreArray: [],
@@ -210,7 +232,7 @@ export default class ConfirmOrder extends wepy.page {
   };
 
   onLoad(option) {
-    this.goodid = option.goodid;
+    this.goodId = option.good_id;
     this.userInfo = GlobalData.getUserInfo();
   }
 
@@ -229,11 +251,11 @@ export default class ConfirmOrder extends wepy.page {
       return;
     }
     let that = this;
-    let goodids = [];
-    if (this.goodid) {
-      goodids.push(this.goodid);
+    let goodIdList = [];
+    if (this.goodId) {
+      goodIdList.push(this.goodId);
     }
-    previewapi.generatePreviewOrder(this.userInfo.id, goodids).then(res => {
+    PreviewAPI.generatePreviewOrder(this.userInfo.username, goodIdList).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         tip.error('订单预览失败,请等待商家修复');
@@ -249,13 +271,13 @@ export default class ConfirmOrder extends wepy.page {
           previeworderItem.msg = '该商品已卖完,需要提前预订';
         } else if (previeworderItem.count > previeworderItem.good.count) {
           previeworderItem.count = previeworderItem.good.count;
-          shopcartapi.updateShopCartItemCount(
-            that.userInfo.id,
+          ShopCartAPI.updateShopCartItemCount(
+            that.userInfo.username,
             previeworderItem.shopcartItemId,
             previeworderItem.count
           );
-          previewapi.updatePreviewOrderItem(
-            that.userInfo.id,
+          PreviewAPI.updatePreviewOrderItem(
+            that.userInfo.username,
             previeworderItem.id,
             {
               count: previeworderItem.count
@@ -278,14 +300,14 @@ export default class ConfirmOrder extends wepy.page {
       tip.error('用户只有登录才能购买商品');
       return;
     }
-    let goodids = [];
+    let goodIdList = [];
     this.previeworderItemList.forEach(previeworderItem => {
-      goodids.push(previeworderItem.good.id);
+      goodIdList.push(previeworderItem.good.id);
     });
 
     let that = this;
-    couponapi
-      .getUserShopOrderVoucherList(this.userInfo.id, goodids)
+    ShopOrderAPI
+      .getUserShopOrderVoucherList(this.userInfo.username, goodIdList)
       .then(res => {
         let response = res.data || {};
         if (response.code != 200) {
@@ -310,8 +332,8 @@ export default class ConfirmOrder extends wepy.page {
       tip.error('用户只有登录才能购买商品');
       return;
     }
-    let json = await previewapi.deletePreviewOrderItem(
-      this.userInfo.id,
+    let json = await PreviewAPI.deletePreviewOrderItem(
+      this.userInfo.username,
       previewgood.id
     );
     let response = json.data || {};
@@ -342,8 +364,8 @@ export default class ConfirmOrder extends wepy.page {
       tip.error('用户只有登录才能购买商品');
       return;
     }
-    let json = await previewapi.updatePreviewOrderItem(
-      this.userInfo.id,
+    let json = await PreviewAPI.updatePreviewOrderItem(
+      this.userInfo.username,
       previewgoodid,
       {
         count: count
@@ -364,8 +386,8 @@ export default class ConfirmOrder extends wepy.page {
       tip.error('用户只有登录才能购买商品');
       return;
     }
-    let json = await previewapi.updatePreviewOrderItem(
-      this.userInfo.id,
+    let json = await PreviewAPI.updatePreviewOrderItem(
+      this.userInfo.username,
       previewgoodid,
       {
         count: count
@@ -388,15 +410,15 @@ export default class ConfirmOrder extends wepy.page {
       return;
     }
     tip.loading('提交订单中');
-    let submitRequest = { sendtype: this.sendtype };
+    let submitRequest = { sendType: this.sendType };
     // 上门自取的方式
-    if (this.sendtype == SENDTYPE_PICKUP) {
-      submitRequest.addressid = this.pickupStore.storeAddress.id;
+    if (this.sendType == SENDTYPE_PICKUP) {
+      submitRequest.addressId = this.pickupStore.storeAddress.id;
       submitRequest.pickupTime = this.pickupTime;
-    } else if (this.sendtype == SENDTYPE_OWNSEND) {
-      submitRequest.addressid = this.recieveAddress.id;
-    } else if (this.sendtype == SENDTYPE_THIRDSEND) {
-      submitRequest.addressid = this.recieveAddress.id;
+    } else if (this.sendType == SENDTYPE_OWNSEND) {
+      submitRequest.addressId = this.recieveAddress.id;
+    } else if (this.sendType == SENDTYPE_THIRDSEND) {
+      submitRequest.addressId = this.recieveAddress.id;
     }
     submitRequest.businessMessage = this.businessMessage;
     submitRequest.formid = formid;
@@ -409,14 +431,14 @@ export default class ConfirmOrder extends wepy.page {
 
     submitRequest.jfNum = this.genericScore;
 
-    let json = await shoporderapi.createUserShopOrder(
-      this.userInfo.id,
+    let json = await ShopOrderAPI.createUserShopOrder(
+      this.userInfo.username,
       submitRequest
     );
     let response = json.data || {};
     if (response.code == 200) {
-      shopcartapi
-        .getShopCartItemList(GlobalData.getUserId(), 1, 10)
+      ShopCartAPI
+        .getShopCartItemList(GlobalData.getUsername(), 1, 10)
         .then(res => {
           let response = res.data || {};
           if (response.code == 200) {
@@ -425,7 +447,7 @@ export default class ConfirmOrder extends wepy.page {
         });
       tip.alert('订单提交成功');
       wepy.redirectTo({
-        url: `/pages/shoporder?sendtype=${submitRequest.sendtype}&orderstatus=${
+        url: `/pages/shoporder?send_type=${submitRequest.sendType}&orderstatus=${
           submitRequest.status
         }`
       });
@@ -435,9 +457,9 @@ export default class ConfirmOrder extends wepy.page {
   }
 
   methods = {
-    selectSendtype(e) {
-      this.sendtype = e.detail.value;
-      switch (this.sendtype) {
+    selectSendType(e) {
+      this.sendType = e.detail.value;
+      switch (this.sendType) {
         case SENDTYPE_PICKUP:
           // 到店自取
           this.getPickupOptions();
@@ -490,7 +512,7 @@ export default class ConfirmOrder extends wepy.page {
     },
     async submitOrder(e) {
       let formid = e.detail.formId;
-      switch (this.sendtype) {
+      switch (this.sendType) {
         case SENDTYPE_PICKUP:
           /* 验证上门取货的条件:
            * 1.要有取货地址
@@ -513,7 +535,7 @@ export default class ConfirmOrder extends wepy.page {
             });
             return false;
           }
-          let json = await storeapi.getStoresCity();
+          let json = await StoreAPI.getStoresCity();
           let response = json.data || {};
           if (response.code == 200) {
             if (response.data.indexOf(this.recieveAddress.city.name) >= 0) {
@@ -580,7 +602,7 @@ export default class ConfirmOrder extends wepy.page {
       }
     },
     jfInput(e) {
-      let num = e.detail.value * 10 / 10;
+      let num = (e.detail.value * 10) / 10;
       let reg = /^[0-9]+$/;
       if (!reg.test(num)) {
         tip.error('输入类型有误');
@@ -604,7 +626,7 @@ export default class ConfirmOrder extends wepy.page {
   };
 
   watch = {
-    sendtype(newValue) {
+    sendType(newValue) {
       // 如果配送方式是快递，需要额外支付快递费
       if (newValue == SENDTYPE_THIRDSEND) {
         this.sendPrice = 10;

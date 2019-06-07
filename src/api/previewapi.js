@@ -1,13 +1,13 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 /**
  * 更新预览的商品项
- * @param {*} userid 
+ * @param {*} username 
  * @param {*} itemid 
  * @param {*} request 
  */
-function updatePreviewOrderItem(userid, itemid, request) {
-    return wxRequest(`/user/${userid}/previeworder/item/${itemid}`, {
+function updatePreviewOrderItem(username, itemid, request) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/previeworder/item/${itemid}`, {
         method: 'PUT',
         data: request
     });
@@ -15,26 +15,26 @@ function updatePreviewOrderItem(userid, itemid, request) {
 
 /**
  * 删除预览的商品项
- * @param {*} userid 
+ * @param {*} username 
  * @param {*} itemid 
  */
-function deletePreviewOrderItem(userid, itemid) {
-    return wxRequest(`/user/${userid}/previeworder/item/${itemid}`, { method: 'DELETE' });
+function deletePreviewOrderItem(username, itemid) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/previeworder/item/${itemid}`, { method: 'DELETE' });
 }
 
 /**
  * 生成用户的预览订单
- * @param {*} userid 
- * @param {*} goodids 
+ * @param {*} username 
+ * @param {*} goodIdList 
  */
-function generatePreviewOrder(userid, goodids) {
-    let queryurl = `/user/${userid}/previeworder?`;
-    if (goodids) {
-        goodids.forEach(element => {
-            queryurl += `goodids=${element}&`
+function generatePreviewOrder(username, goodIdList) {
+    let queryurl = `/shoporder-service/user/${username}/previeworder?`;
+    if (goodIdList) {
+        goodIdList.forEach(element => {
+            queryurl += `good_id=${element}&`
         });
     }
-    return wxRequest(queryurl);
+    return new WXRequest().request(queryurl);
 }
 module.exports = {
     updatePreviewOrderItem,

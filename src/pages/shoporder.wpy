@@ -1,13 +1,17 @@
 <template>
   <view>
     <view class="swiper-tab-pd">
-        <tab @currentTab.user="updateCurrentTab" :tabList.sync="tabList" :currentTab.sync="currentTab"/>
+      <tab
+        @currentTab.user="updateCurrentTab"
+        :tabList.sync="tabList"
+        :currentTab.sync="currentTab"
+      />
     </view>
-      <orderItem :shoporderList.sync="shoporderList"></orderItem>
-      <!--加载更多时动画-->
-      <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
-      <!--暂无数据显示-->
-      <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
+    <orderItem :shoporderList.sync="shoporderList"></orderItem>
+    <!--加载更多时动画-->
+    <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
+    <!--暂无数据显示-->
+    <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
   </view>
 </template>
 <script>
@@ -27,7 +31,7 @@ import {
   ORDERSTATUS_FINISHED
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import shoporderapi from '../api/shoporderapi';
+import ShopOrderAPI from '../api/ShopOrderAPI';
 import tip from '../utils/tip';
 export default class Order extends wepy.page {
   config = {
@@ -44,14 +48,14 @@ export default class Order extends wepy.page {
     ],
     currentTab: -1,
     // 订单的配送方式:  0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
-    sendtypeList: [],
-    // 订单状态:0:预订;1:未开始;2:进行中;3:已完成;4:订单超时
+    sendTypeList: [],
+    // 订单状态:0:未知类型,1:预订;2:未开始;3:进行中;4:已完成;5:订单超时
     orderstatusList: [],
 
     shoporderList: [],
     totalpage: 1,
-    currentpage: 1,
-    pagesize: 5,
+    currentPage: 1,
+    pageSize: 5,
     is_empty: true,
     gettingmore: false,
     // 防止重复加载
@@ -70,7 +74,7 @@ export default class Order extends wepy.page {
       this.currentTab = 2;
       return;
     }
-    switch (opts.sendtype) {
+    switch (opts.send_type) {
       case SENDTYPE_PICKUP:
         this.currentTab = 1;
         break;
@@ -85,12 +89,12 @@ export default class Order extends wepy.page {
   onShow() {
     // 处理订单还未处理前修改地址的逻辑
     let recieveAddress = GlobalData.getSelectedRecieveAddress();
-    let shoporderid = GlobalData.getCurShopOrderId();
-    if (shoporderid && recieveAddress) {
+    let shopOrderId = GlobalData.getCurShopOrderId();
+    if (shopOrderId && recieveAddress) {
       GlobalData.clearSelectedRecieveAddress();
       GlobalData.clearCurShopOrderId();
       this.shoporderList.forEach(shoporder => {
-        if (shoporder.id == shoporderid) {
+        if (shoporder.id == shopOrderId) {
           shoporder.recieveAddress = recieveAddress;
         }
       });
@@ -110,29 +114,29 @@ export default class Order extends wepy.page {
       return;
     }
     if (more) {
-      if (this.currentpage >= this.totalpage) {
+      if (this.currentPage >= this.totalpage) {
         tip.success('已经到底啦');
         return;
       } else {
         this.gettingmore = true;
-        this.currentpage++;
+        this.currentPage++;
       }
     }
 
     if (init || pulldown) {
-      this.currentpage = 1;
+      this.currentPage = 1;
       this.totalpage = 1;
     }
     wx.showNavigationBarLoading();
     this.inRequesting = true;
     let that = this;
-    shoporderapi
+    ShopOrderAPI
       .getUserShopOrderList(
-        GlobalData.getUserId(),
+        GlobalData.getUsername(),
         this.orderstatusList,
-        this.sendtypeList,
-        this.currentpage,
-        this.pagesize
+        this.sendTypeList,
+        this.currentPage,
+        this.pageSize
       )
       .then(res => {
         that.gettingmore = false;
@@ -146,7 +150,7 @@ export default class Order extends wepy.page {
           return;
         }
         let getUserShopOrderListResponse = response.data;
-        that.currentpage = getUserShopOrderListResponse.currentpage;
+        that.currentPage = getUserShopOrderListResponse.currentPage;
         that.totalpage = getUserShopOrderListResponse.totalpage;
         if (init || pulldown) {
           that.shoporderList = getUserShopOrderListResponse.dataList;
@@ -170,8 +174,8 @@ export default class Order extends wepy.page {
 
   loadShopOrderCount() {
     let that = this;
-    shoporderapi
-      .getUserShopOrderStatusCount(GlobalData.getUserId())
+    ShopOrderAPI
+      .getUserShopOrderStatusCount(GlobalData.getUsername())
       .then(res => {
         let response = res.data || {};
         if (response.code != 200) {
@@ -213,15 +217,15 @@ export default class Order extends wepy.page {
     currentTab(newValue) {
       switch (newValue) {
         case 0:
-          this.sendtypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
+          this.sendTypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
           this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
           break;
         case 1:
-          this.sendtypeList = [SENDTYPE_PICKUP];
+          this.sendTypeList = [SENDTYPE_PICKUP];
           this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
           break;
         case 2:
-          this.sendtypeList = [
+          this.sendTypeList = [
             SENDTYPE_UNKNOW,
             SENDTYPE_PICKUP,
             SENDTYPE_OWNSEND,
@@ -230,7 +234,7 @@ export default class Order extends wepy.page {
           this.orderstatusList = [ORDERSTATUS_PREORDER];
           break;
         case 3:
-          this.sendtypeList = [
+          this.sendTypeList = [
             SENDTYPE_UNKNOW,
             SENDTYPE_PICKUP,
             SENDTYPE_OWNSEND,
@@ -239,7 +243,7 @@ export default class Order extends wepy.page {
           this.orderstatusList = [ORDERSTATUS_FINISHED];
           break;
         default:
-          this.sendtypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
+          this.sendTypeList = [SENDTYPE_OWNSEND, SENDTYPE_THIRDSEND];
           this.orderstatusList = [ORDERSTATUS_UNSTART, ORDERSTATUS_DOING];
           break;
       }

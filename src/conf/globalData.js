@@ -1,42 +1,73 @@
 import wepy from 'wepy'
-import { JWT_TOKEN, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils/constant'
+import { ACCESS_TOKEN, REFRESH_TOKEN, TOP_CLASSIFY_ID, SUB_CLASSIFY_ID, USER_INFO } from '../utils/constant'
 export default class GlobalData {
 
     /**
-     * 设置当前用户的JsonWebToken
-     * @param {*} jwtToken 
+     * 设置当前用户的AccessToken
+     * @param {*} accessToken 
      */
-    static setJWTToken(jwtToken) {
-        if (jwtToken) {
-            GlobalData.jwtToken = jwtToken;
-            wepy.setStorageSync(JWT_TOKEN, jwtToken);
+    static setAccessToken(accessToken) {
+        if (accessToken) {
+            GlobalData.accessToken = accessToken;
+            wepy.setStorageSync(ACCESS_TOKEN, accessToken);
         }
     }
 
     /**
-     * 获取当前用户的JsonWebToken
+     * 获取当前用户的AccessToken
      */
-    static getJWTToken() {
-        let result = GlobalData.jwtToken;
+    static getAccessToken() {
+        let result = GlobalData.accessToken;
         if (!result) {
-            result = wepy.getStorageSync(JWT_TOKEN);
-            GlobalData.jwtToken = result;
+            result = wepy.getStorageSync(ACCESS_TOKEN);
+            GlobalData.accessToken = result;
         }
         return result;
     }
 
     /**
-     * 清理当前用户的JsonWebToken
+     * 清理当前用户的AccessToken
      */
-    static clearJWTToken() {
-        GlobalData.jwtToken = undefined;
-        wepy.removeStorageSync(JWT_TOKEN);
+    static clearAccessToken() {
+        GlobalData.accessToken = undefined;
+        wepy.removeStorageSync(ACCESS_TOKEN);
     }
 
     /**
-     * 更新用户的JsonWebToken
+     * 设置当前用户的RefreshToken
+     * @param {*} refreshToken 
      */
-    static async refreshJWTToken() {
+    static setRefreshToken(refreshToken) {
+        if (refreshToken) {
+            GlobalData.refreshToken = refreshToken;
+            wepy.setStorageSync(REFRESH_TOKEN, refreshToken);
+        }
+    }
+
+    /**
+     * 获取当前用户的RefreshToken
+     */
+    static getRefreshToken() {
+        let result = GlobalData.refreshToken;
+        if (!result) {
+            result = wepy.getStorageSync(REFRESH_TOKEN);
+            GlobalData.refreshToken = result;
+        }
+        return result;
+    }
+
+    /**
+     * 清理当前用户的RefreshToken
+     */
+    static clearRefreshToken() {
+        GlobalData.refreshToken = undefined;
+        wepy.removeStorageSync(REFRESH_TOKEN);
+    }
+
+    /**
+     * 更新用户的AccessToken
+     */
+    static async refreshAccessToken() {
 
     }
 
@@ -125,12 +156,12 @@ export default class GlobalData {
 
     /**
      * 设置用户ID
-     * @param {*} userid 
+     * @param {*} username 
      */
-    static setUserId(userid) {
-        if (userid) {
+    static setUsername(username) {
+        if (username) {
             let userInfo = GlobalData.getUserInfo();
-            userInfo.id = userid;
+            userInfo.username = username;
             GlobalData.setUserInfo(userInfo);
         }
     }
@@ -138,9 +169,9 @@ export default class GlobalData {
     /**
      * 获取用户ID
      */
-    static getUserId() {
+    static getUsername() {
         let userInfo = GlobalData.getUserInfo();
-        return userInfo.id;
+        return userInfo.username;
     }
 
 
@@ -188,11 +219,11 @@ export default class GlobalData {
 
     /**
      * 设置购物车
-     * @param {*} shopcartList 
+     * @param {*} shopCartList 
      */
-    static setShopCartList(shopcartList) {
-        if (shopcartList) {
-            GlobalData.shopcartList = shopcartList;
+    static setShopCartList(shopCartList) {
+        if (shopCartList) {
+            GlobalData.shopCartList = shopCartList;
         }
     }
 
@@ -200,24 +231,24 @@ export default class GlobalData {
      * 获取购物车
      */
     static getShopCartList() {
-        return GlobalData.shopcartList;
+        return GlobalData.shopCartList;
     }
 
     /**
      * 添加购物车
-     * @param {*} shopcart 
+     * @param {*} shopCart 
      */
-    static addShopCart(shopcart) {
-        if (shopcart) {
+    static addShopCart(shopCart) {
+        if (shopCart) {
             let exist = false;
-            GlobalData.shopcartList.forEach(element => {
-                if (element.id == shopcart.id) {
-                    element.count = shopcart.count;
+            GlobalData.shopCartList.forEach(element => {
+                if (element.id == shopCart.id) {
+                    element.count = shopCart.count;
                     exist = true;
                 }
             });
             if (!exist) {
-                GlobalData.shopcartList.unshift(shopcart);
+                GlobalData.shopCartList.unshift(shopCart);
             }
         }
     }
@@ -298,12 +329,21 @@ export default class GlobalData {
         GlobalData.curShopOrderId = undefined;
     }
 
+    static clearUser() {
+        GlobalData.clearAccessToken();
+        GlobalData.clearRefreshToken();
+        GlobalData.clearCurShopOrderId();
+        GlobalData.clearSelectedRecieveAddress();
+        GlobalData.clearUserInfo();
+    }
+
 }
-GlobalData.jwtToken = undefined;
+GlobalData.accessToken = undefined;
+GlobalData.refreshToken = undefined;
 GlobalData.topclassifyid = undefined;
 GlobalData.subclassifyid = undefined;
 GlobalData.userInfo = undefined;
-GlobalData.shopcartList = [];
+GlobalData.shopCartList = [];
 GlobalData.recieveAddressList = [];
 GlobalData.initRecieveAddressList = false;
 GlobalData.selectedRecieveAddress = undefined;

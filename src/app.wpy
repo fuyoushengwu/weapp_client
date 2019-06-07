@@ -7,6 +7,8 @@
 <script>
 import wepy from 'wepy';
 import 'wepy-async-function';
+import GlobalData from './conf/globalData';
+import UserAPI from './api/UserAPI';
 import { SYSTEM_INFO, INFO_REQUEST_PERMISSION } from './utils/constant';
 export default class extends wepy.app {
   config = {
@@ -69,6 +71,11 @@ export default class extends wepy.app {
           selectedIconPath: 'images/icon_store_active.png'
         }
       ]
+    },
+    permission: {
+      'scope.userLocation': {
+        desc: '你的位置信息将用于帮助您导航到最近门店'
+      }
     }
   };
 
@@ -84,6 +91,18 @@ export default class extends wepy.app {
     // 获取系统信息
     let systemInfo = wepy.getSystemInfoSync();
     wepy.setStorageSync(SYSTEM_INFO, systemInfo);
+  }
+
+  async onShow() {
+    let accessToken = GlobalData.getAccessToken();
+    if (!accessToken) {
+      return;
+    }
+    let json = await UserAPI.getUser();
+    let response = json.data || {};
+    if (response.code != 200) {
+      GlobalData.clearUser();
+    }
   }
 }
 </script>

@@ -30,7 +30,7 @@ import wepy from 'wepy';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import GlobalData from '../conf/globalData';
-import usermessageapi from '../api/usermessageapi';
+import UserMessageAPI from '../api/UserMessageAPI';
 import tip from '../utils/tip';
 export default class Messages extends wepy.page {
   config = {
@@ -44,8 +44,8 @@ export default class Messages extends wepy.page {
   data = {
     messageList: [],
     totalpage: 1,
-    currentpage: 1,
-    pagesize: 10,
+    currentPage: 1,
+    pageSize: 10,
     is_empty: true,
     gettingmore: false,
     // 防止重复加载
@@ -69,28 +69,28 @@ export default class Messages extends wepy.page {
       return;
     }
     if (more) {
-      if (this.currentpage >= this.totalpage) {
+      if (this.currentPage >= this.totalpage) {
         tip.success('已经到底啦');
         return;
       } else {
         this.gettingmore = true;
-        this.currentpage++;
+        this.currentPage++;
       }
     }
 
     if (init || pulldown) {
-      this.currentpage = 1;
+      this.currentPage = 1;
       this.totalpage = 1;
     }
     wx.showNavigationBarLoading();
     this.inRequesting = true;
     let that = this;
 
-    usermessageapi
+    UserMessageAPI
       .getUserMessageList(
-        GlobalData.getUserId(),
-        this.currentpage,
-        this.pagesize
+        GlobalData.getUsername(),
+        this.currentPage,
+        this.pageSize
       )
       .then(res => {
         that.gettingmore = false;
@@ -104,7 +104,7 @@ export default class Messages extends wepy.page {
           return;
         }
         let getUserMessageListResponse = response.data;
-        that.currentpage = getUserMessageListResponse.currentpage;
+        that.currentPage = getUserMessageListResponse.currentPage;
         that.totalpage = getUserMessageListResponse.totalpage;
         if (init || pulldown) {
           that.messageList = getUserMessageListResponse.dataList;

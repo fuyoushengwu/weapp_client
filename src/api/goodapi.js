@@ -1,17 +1,17 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 /**
  * 分页查询条目下的商品
- * @param {*} classifyid 
+ * @param {*} classifyId 
  * @param {*} packFilter 
  * @param {*} levelFilter 
  * @param {*} orderType 
  * @param {*} orderValue 
- * @param {*} currentpage 
- * @param {*} pagesize 
+ * @param {*} currentPage 
+ * @param {*} pageSize 
  */
-function getClassifyGoodList(classifyid, packFilter, levelFilter, orderType, orderValue, currentpage, pagesize) {
-    let queryurl = `/classify/${classifyid}/good?`;
+function getClassifyGoodList(classifyId, packFilter, levelFilter, orderType, orderValue, currentPage, pageSize) {
+    let queryurl = `/goods-service/classify/${classifyId}/good?`;
     if (packFilter) {
         packFilter.forEach(element => {
             queryurl += `packFilter=${element}&`
@@ -28,66 +28,30 @@ function getClassifyGoodList(classifyid, packFilter, levelFilter, orderType, ord
     if (orderValue) {
         queryurl += `orderType=${orderValue}&`
     }
-    queryurl += `currentpage=${currentpage}&pagesize=${pagesize}`;
-    return wxRequest(queryurl);
-}
-
-/**
- * 添加商品
- * @param {*} goodRequest 
- */
-function createGood(goodRequest) {
-    return wxRequest(`/good`, {
-        method: 'POST',
-        data: goodRequest
-    });
+    queryurl += `current_page=${currentPage}&page_size=${pageSize}`;
+    return new WXRequest().request(queryurl);
 }
 
 /**
  * 获取商品信息
- * @param {*} goodid 
+ * @param {*} goodId 
  */
-function getGood(goodid) {
-    return wxRequest(`/good/${goodid}`);
+function getGood(goodId) {
+    return new WXRequest().request(`/goods-service/good/${goodId}`);
 }
 
-
-/**
- * 废弃商品
- * @param {*} goodid 
- */
-function deprecateGood(goodid) {
-    return wxRequest(`/good/${goodid}`, {
-        method: 'DELETE'
-    });
-}
 
 /**
  * 获取商品详细信息
- * @param {*} goodid 
+ * @param {*} goodId 
  */
-function getGoodDetail(goodid) {
-    return wxRequest(`/good/${goodid}/detail`);
-}
-
-/**
- * 更新Good信息
- * @param {*} goodid 
- * @param {*} request 
- */
-function updateGood(goodid, request) {
-    return wxRequest(`/good/${goodid}`, {
-        method: 'PUT',
-        data: request
-    });
+function getGoodDetail(goodId) {
+    return new WXRequest().request(`/goods-service/good/${goodId}/detail`);
 }
 
 
 module.exports = {
     getClassifyGoodList,
-    createGood,
     getGood,
-    deprecateGood,
-    getGoodDetail,
-    updateGood
+    getGoodDetail
 }

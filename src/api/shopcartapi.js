@@ -1,13 +1,13 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 
 /**
  * 往用户购物车添加商品
- * @param {*} userid 
+ * @param {*} username 
  * @param {*} requestBean 
  */
-function addShopCartItem(userid, requestBean) {
-    return wxRequest(`/user/${userid}/shopcart`, {
+function addShopCartItem(username, requestBean) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart`, {
         method: 'POST',
         data: requestBean
     });
@@ -15,57 +15,49 @@ function addShopCartItem(userid, requestBean) {
 
 /**
  * 分页获取用户购物车中的项目
- * @param {*} userid 
- * @param {*} currentpage 
- * @param {*} pagesize 
+ * @param {*} username 
+ * @param {*} currentPage 
+ * @param {*} pageSize 
  */
-function getShopCartItemList(userid, currentpage, pagesize) {
-    return wxRequest(`/user/${userid}/shopcart?currentpage=${currentpage}&pagesize=${pagesize}`);
+function getShopCartItemList(username, currentPage, pageSize) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart?current_page=${currentPage}&page_size=${pageSize}`);
 }
 
 /**
  * 全选/全不选用户购物车中的商品
- * @param {*} userid 
- * @param {*} ischecked 
+ * @param {*} username 
+ * @param {*} checked 
  */
-function checkAllShopCartItem(userid, ischecked) {
-    return wxRequest(`/user/${userid}/shopcart/allcheck/${ischecked}`, { method: 'PUT' });
+function checkAllShopCartItem(username, checked) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart/allcheck/${checked}`, { method: 'PUT' });
 }
 
 /**
  * 选中用户购物车下的某一项
- * @param {*} userid 
- * @param {*} shopcartid 
- * @param {*} ischecked 
+ * @param {*} username 
+ * @param {*} shopCartId 
+ * @param {*} checked 
  */
-function checkShopCartItem(userid, shopcartid, ischecked) {
-    return wxRequest(`/user/${userid}/shopcart/${shopcartid}/check/${ischecked}`, { method: 'PUT' });
+function checkShopCartItem(username, shopCartId, checked) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart/${shopCartId}/check/${checked}`, { method: 'PUT' });
 }
 /**
  * 删除用户购物车中的某项
- * @param {*} userid 
- * @param {*} shopcartid 
+ * @param {*} username 
+ * @param {*} shopCartId 
  */
-function deleteShopCartItem(userid, shopcartid) {
-    return wxRequest(`/user/${userid}/shopcart/${shopcartid}`, { method: 'DELETE' });
+function deleteShopCartItem(username, shopCartId) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart/${shopCartId}`, { method: 'DELETE' });
 }
 
 /**
  * 修改用户购物车中商品数量
- * @param {*} userid 
- * @param {*} shopcartid 
+ * @param {*} username 
+ * @param {*} shopCartId 
  * @param {*} count 
  */
-function updateShopCartItemCount(userid, shopcartid, count) {
-    return wxRequest(`/user/${userid}/shopcart/${shopcartid}/count/${count}`, { method: 'PUT' });
-}
-
-/**
- * 删除购物车中的商品(该方法在废弃商品的时候使用,所以只有Admin才能调用该方法)
- * @param {*} goodid 
- */
-function deleteGood(goodid) {
-    return wxRequest(`/shopcart/good/${goodid}`, { method: 'DELETE' });
+function updateShopCartItemCount(username, shopCartId, count) {
+    return new WXRequest().request(`/shoporder-service/user/${username}/shop_cart/${shopCartId}/count/${count}`, { method: 'PUT' });
 }
 
 module.exports = {
@@ -74,6 +66,5 @@ module.exports = {
     checkAllShopCartItem,
     checkShopCartItem,
     deleteShopCartItem,
-    updateShopCartItemCount,
-    deleteGood,
+    updateShopCartItemCount
 }

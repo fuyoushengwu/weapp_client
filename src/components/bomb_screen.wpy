@@ -5,10 +5,10 @@
                 <view class="alert-content">
                     <image src="../images/icon_alert.png" class="icon_alert_dialog"/>
                     <view class="title">用户页</view>
-                    <view class="title-doc">用户需要先注册才能使用用户相关的功能</view>
+                    <view class="title-doc">用户需要先登陆才能使用用户相关的功能</view>
                 </view>
                 <view class="btn_box">
-                    <button class="button type_red" open-type="getUserInfo" @getuserinfo="registerUser">用户注册</button>
+                    <button class="button type_red" open-type="getUserInfo" @getuserinfo="registerUser">用户登陆</button>
                 </view>
             </view>
             <i class="iconfont icon-close" @tap.stop="close"></i>

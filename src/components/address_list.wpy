@@ -31,8 +31,8 @@
 import wepy from 'wepy';
 import SwipeDelete from './common/swipe-delete';
 import GlobalData from '../conf/globalData';
-import shoporderapi from '../api/shoporderapi';
-import userapi from '../api/userapi';
+import ShopOrderAPI from '../api/ShopOrderAPI';
+import UserAPI from '../api/UserAPI';
 import tip from '../utils/tip';
 export default class AddressList extends wepy.component {
   props = {
@@ -54,8 +54,8 @@ export default class AddressList extends wepy.component {
     this.type = type;
   }
 
-  setShopOrderId(shoporderid) {
-    this.shoporderid = shoporderid;
+  setShopOrderId(shopOrderId) {
+    this.shopOrderId = shopOrderId;
   }
 
   setRecieveAddressList(list) {
@@ -66,29 +66,29 @@ export default class AddressList extends wepy.component {
     this.$apply();
   }
 
-  delUserAddress(addressid) {
+  delUserAddress(addressId) {
     let that = this;
-    userapi
-      .deprecateRecieveAddress(GlobalData.getUserId(), addressid)
+    UserAPI
+      .deprecateRecieveAddress(GlobalData.getUsername(), addressId)
       .then(res => {
         let response = res.data || {};
         if (response.code != 200) {
           tip.error('删除用户收货地址失败');
           return;
         }
-        that.$emit('currentpage', 0);
-        that.$emit('deleteRecieveAddress', addressid);
+        that.$emit('currentPage', 0);
+        that.$emit('deleteRecieveAddress', addressId);
       });
   }
 
   methods = {
     addRecieveAddress() {
       // 0 列表 1新增 2编辑
-      this.$emit('currentpage', 1);
+      this.$emit('currentPage', 1);
     },
-    editRecieveAddress(addressid) {
+    editRecieveAddress(addressId) {
       // 0 列表 1新增 2编辑
-      this.$emit('currentpage', 2, addressid);
+      this.$emit('currentPage', 2, addressId);
     },
     deleteRecieveAddress(recieveAddress) {
       this.delUserAddress(recieveAddress.id);
@@ -100,16 +100,16 @@ export default class AddressList extends wepy.component {
           delta: 1
         });
       } else if (this.type == 'shoporder') {
-        shoporderapi
+        ShopOrderAPI
           .updateUserShopOrderRecieveAddress(
-            GlobalData.getUserId(),
-            this.shoporderid,
+            GlobalData.getUsername(),
+            this.shopOrderId,
             recieveAddress.id
           )
           .then(res => {
             let response = res.data || {};
             if (response.code == 200) {
-              GlobalData.setCurShopOrderId(this.shoporderid);
+              GlobalData.setCurShopOrderId(this.shopOrderId);
               GlobalData.setSelectedRecieveAddress(recieveAddress);
               wepy.navigateBack({
                 delta: 1

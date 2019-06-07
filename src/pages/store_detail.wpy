@@ -30,7 +30,7 @@
 </template>
 <script>
 import wepy from 'wepy';
-import storeapi from '../api/storeapi';
+import StoreAPI from '../api/StoreAPI';
 export default class StoreDetail extends wepy.page {
   data = {
     // 当前门店信息
@@ -38,7 +38,7 @@ export default class StoreDetail extends wepy.page {
   };
   onLoad(option) {
     let that = this;
-    storeapi.getStore(option.storeid).then(res => {
+    StoreAPI.getStore(option.store_id).then(res => {
       let response = res.data || {};
       if (response.code == 200) {
         that.curStore = response.data;

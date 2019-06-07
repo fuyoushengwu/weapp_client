@@ -47,7 +47,7 @@
 import wepy from 'wepy';
 import AreaPicker from './common/area-picker';
 import GlobalData from '../conf/globalData';
-import userapi from '../api/userapi';
+import UserAPI from '../api/UserAPI';
 import tip from '../utils/tip';
 export default class AddressEdit extends wepy.component {
   data = {
@@ -68,7 +68,7 @@ export default class AddressEdit extends wepy.component {
   refresh(recieveAddress) {
     if (!recieveAddress) return;
     this.recieve_address = recieveAddress;
-    this.addressid = this.recieve_address.id;
+    this.addressId = this.recieve_address.id;
     this.def = this.recieve_address.def;
     this.province = this.recieve_address.province;
     this.city = this.recieve_address.city;
@@ -77,8 +77,8 @@ export default class AddressEdit extends wepy.component {
   }
   editRecieveAddress(recieveAddress) {
     let that = this;
-    userapi
-      .updateRecieveAddress(GlobalData.getUserId(), this.addressid, {
+    UserAPI
+      .updateRecieveAddress(GlobalData.getUsername(), this.addressId, {
         def: this.def,
         reciever: recieveAddress.reciever,
         phone: recieveAddress.phone,
@@ -94,7 +94,7 @@ export default class AddressEdit extends wepy.component {
           return;
         }
         // 0 列表 1新增 2编辑 (显示列表)
-        that.$emit('currentpage', 0);
+        that.$emit('currentPage', 0);
         that.$emit('updateRecieveAddress', response.data);
       });
   }

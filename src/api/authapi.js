@@ -1,15 +1,24 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 
 /**
  *  获取JWT
+ * @param {*} appid 
+ * @param {*} appsecret
+ * @param {*} clientSecret 
  * @param {*} jscode 
  * @param {*} nickname 
  * @param {*} avatar 
  * @param {*} gender 
  */
-function getToken(jscode, nickname, avatar, gender) {
-    let queryurl = '/user/token?';
+function getToken(appid, appsecret, jscode, nickname, avatar, gender) {
+    let queryurl = '/oauth/token?scope=read&scope=write&grant_type=jscode&';
+    if (appid) {
+        queryurl += `client_id=${appid}&`
+    }
+    if (appsecret) {
+        queryurl += `client_secret=${appsecret}&`
+    }
     if (jscode) {
         queryurl += `jscode=${jscode}&`
     }
@@ -22,29 +31,9 @@ function getToken(jscode, nickname, avatar, gender) {
     if (gender) {
         queryurl += `gender=${gender}`
     }
-    return wxRequest(queryurl)
+    return new WXRequest().request(queryurl, { method: 'POST' })
 }
 
-/**
- * 注册用户
- * @param {*} user 
- */
-function registerUser(user) {
-    return wxRequest('/user/register', {
-        method: 'POST',
-        data: user
-    });
-}
-
-/**
- * 刷新用户jwt token
- * @param {*} token 
- */
-function refreshToken(token) {
-    return wxRequest('/user/token', { method: 'PUT' });
-}
 module.exports = {
-    getToken,
-    registerUser,
-    refreshToken
+    getToken
 }

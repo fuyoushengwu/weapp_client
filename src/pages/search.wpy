@@ -1,14 +1,14 @@
 <template>
   <view class="container">
-      <filterBar @refresh.user="refresh" :goods.sync="goodList"/>
-      <view wx:if="{{goodList.length>0}}">
-        <!--矩阵商品列表模块-->
-        <goodGridList :goodList.sync="goodList"></goodGridList>
-        <!--加载更多时动画-->
-        <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
-        <!--暂无数据显示-->
-        <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
-      </view>
+    <filterBar @refresh.user="refresh" :goods.sync="goodList"/>
+    <view wx:if="{{goodList.length>0}}">
+      <!--矩阵商品列表模块-->
+      <goodGridList :goodList.sync="goodList"></goodGridList>
+      <!--加载更多时动画-->
+      <bottomLoadMore :show.sync="gettingmore"></bottomLoadMore>
+      <!--暂无数据显示-->
+      <placeholder :show.sync="is_empty" message="暂无发现数据"></placeholder>
+    </view>
   </view>
 </template>
 <script>
@@ -17,8 +17,8 @@ import FilterBar from '../components/filter_bar';
 import GoodGridList from '../components/good_grid_list';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
-import goodapi from '../api/goodapi';
-import couponapi from '../api/couponapi';
+import GoodAPI from '../api/GoodAPI';
+import CouponAPI from '../api/CouponAPI';
 import tip from '../utils/tip';
 export default class Search extends wepy.page {
   config = {
@@ -35,13 +35,13 @@ export default class Search extends wepy.page {
 
   data = {
     // 当前商品对应的条目ID
-    classifyid: undefined,
+    classifyId: undefined,
     queryParam: {},
     // 商品列表
     goodList: [],
     totalpage: 1,
-    currentpage: 1,
-    pagesize: 15,
+    currentPage: 1,
+    pageSize: 15,
     // 商品列表为空
     is_empyt: true,
     // 是否展示正在加载页面
@@ -59,53 +59,53 @@ export default class Search extends wepy.page {
   onLoad(option) {
     this.setTitle(option.title);
 
-    if (option.classifyid != undefined) {
-      this.classifyid = option.classifyid;
+    if (option.classify_id != undefined) {
+      this.classifyId = option.classify_id;
     } else if (option.topClassifyid != undefined) {
-      this.classifyid = option.topClassifyid;
+      this.classifyId = option.topClassifyid;
     }
 
-    this.getClassifyGoods(true, false, false, this.classifyid, this.queryParam);
+    this.getClassifyGoods(true, false, false, this.classifyId, this.queryParam);
   }
 
   onPullDownRefresh() {
-    this.getClassifyGoods(false, true, false, this.classifyid, this.queryParam);
+    this.getClassifyGoods(false, true, false, this.classifyId, this.queryParam);
   }
 
   onReachBottom() {
-    this.getClassifyGoods(false, false, true, this.classifyid, this.queryParam);
+    this.getClassifyGoods(false, false, true, this.classifyId, this.queryParam);
   }
 
-  getClassifyGoods(init, pulldown, more, classifyid, queryParam = {}) {
+  getClassifyGoods(init, pulldown, more, classifyId, queryParam = {}) {
     if (this.inRequesting) {
       return;
     }
     if (more) {
-      if (this.currentpage >= this.totalpage) {
+      if (this.currentPage >= this.totalpage) {
         tip.success('已经到底啦');
         return;
       } else {
         this.gettingmore = true;
-        this.currentpage++;
+        this.currentPage++;
       }
     }
 
     if (init || pulldown) {
-      this.currentpage = 1;
+      this.currentPage = 1;
       this.totalpage = 1;
     }
     wx.showNavigationBarLoading();
     this.inRequesting = true;
     let that = this;
-    goodapi
+    GoodAPI
       .getClassifyGoodList(
-        classifyid,
+        classifyId,
         queryParam.packFilter,
         queryParam.levelFilter,
         queryParam.orderType,
         queryParam.orderValue,
-        this.currentpage,
-        this.pagesize
+        this.currentPage,
+        this.pageSize
       )
       .then(res => {
         that.gettingmore = false;
@@ -120,7 +120,7 @@ export default class Search extends wepy.page {
         }
 
         let getClassifyGoodListResponse = response.data;
-        that.currentpage = getClassifyGoodListResponse.currentpage;
+        that.currentPage = getClassifyGoodListResponse.currentPage;
         that.totalpage = getClassifyGoodListResponse.totalpage;
         if (init || pulldown) {
           that.goodList = getClassifyGoodListResponse.dataList;
@@ -133,7 +133,7 @@ export default class Search extends wepy.page {
 
         that.goodList.forEach(good => {
           if (good.voucherId) {
-            couponapi.getGoodVoucher(good.voucherId).then(res => {
+            CouponAPI.getGoodVoucher(good.voucherId).then(res => {
               let response = res.data || {};
               if (response.code == 200) {
                 good.goodvoucher = response.data;
@@ -155,7 +155,7 @@ export default class Search extends wepy.page {
   methods = {
     refresh(queryParam) {
       this.queryParam = queryParam;
-      this.getClassifyGoods(true, false, false, this.classifyid, queryParam);
+      this.getClassifyGoods(true, false, false, this.classifyId, queryParam);
     }
   };
 }

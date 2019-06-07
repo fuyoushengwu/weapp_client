@@ -7,16 +7,16 @@
 import wepy from 'wepy';
 import ShopCart from '../components/shop_cart';
 import GlobalData from '../conf/globalData';
-import shopcartapi from '../api/shopcartapi';
+import ShopCartAPI from '../api/ShopCartAPI';
 export default class shopCart extends wepy.page {
   config = {
     navigationBarTitleText: '购物车'
   };
   data = {
-    shopcartList: [],
+    shopCartList: [],
     totalpage: 1,
-    currentpage: 0,
-    pagesize: 10,
+    currentPage: 0,
+    pageSize: 10,
     // 防止重复加载
     inRequesting: false
   };
@@ -27,9 +27,9 @@ export default class shopCart extends wepy.page {
     this.getShopCartItemList();
   }
   onShow() {
-    if (GlobalData.getUserId()) {
-      this.shopcartList = GlobalData.getShopCartList();
-      this.$invoke('shopCart', 'updateShopCartList', this.shopcartList);
+    if (GlobalData.getUsername()) {
+      this.shopCartList = GlobalData.getShopCartList();
+      this.$invoke('shopCart', 'updateShopCartList', this.shopCartList);
     }
   }
 
@@ -37,20 +37,20 @@ export default class shopCart extends wepy.page {
     this.getShopCartItemList();
   }
   getShopCartItemList() {
-    if (this.currentpage >= this.totalpage) {
+    if (this.currentPage >= this.totalpage) {
       return;
     }
     if (this.inRequesting) {
       return;
     }
     this.inRequesting = true;
-    this.currentpage += 1;
+    this.currentPage += 1;
     let that = this;
-    shopcartapi
+    ShopCartAPI
       .getShopCartItemList(
-        GlobalData.getUserId(),
-        this.currentpage,
-        this.pagesize
+        GlobalData.getUsername(),
+        this.currentPage,
+        this.pageSize
       )
       .then(res => {
         that.inRequesting = false;
@@ -59,14 +59,14 @@ export default class shopCart extends wepy.page {
           return;
         }
         let getShopCartListResponse = response.data;
-        that.currentpage = getShopCartListResponse.currentpage;
+        that.currentPage = getShopCartListResponse.currentPage;
         that.totalpage = getShopCartListResponse.totalpage;
-        that.shopcartList = [
-          ...that.shopcartList,
+        that.shopCartList = [
+          ...that.shopCartList,
           ...getShopCartListResponse.dataList
         ];
-        GlobalData.setShopCartList(that.shopcartList);
-        that.$invoke('shopCart', 'updateShopCartList', that.shopcartList);
+        GlobalData.setShopCartList(that.shopCartList);
+        that.$invoke('shopCart', 'updateShopCartList', that.shopCartList);
         that.$apply();
       });
   }

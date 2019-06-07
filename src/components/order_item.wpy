@@ -2,7 +2,7 @@
     <view class="order_item">
         <repeat for="{{shoporderList}}">
             <view class="list" wx:key="index">
-              <navigator class="item_content" url="/pages/order_detail?shoporderid={{item.id}}">
+              <navigator class="item_content" url="/pages/order_detail?shop_order_id={{item.id}}">
                 <view class="order_list_top">
                     <view class="left">
                         <view class="title">订单号
@@ -11,22 +11,22 @@
                         <view class="title mt10">提交时间:
                             <text class="order_doc">{{item.createTime}}</text>
                         </view>
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_OWNSEND||item.sendtype==SENDTYPE_THIRDSEND}}">收货地址:
+                        <view class="title mt10" wx:if="{{item.sendType==SENDTYPE_OWNSEND||item.sendType==SENDTYPE_THIRDSEND}}">收货地址:
                             <text class="order_doc">{{item.recieveAddress.detail}}</text>
                             <text class="order_doc" wx:if="{{item.status==ORDERSTATUS_UNSTART||item.status==ORDERSTATUS_PREORDER}}" 
                                     @tap.stop="changeRecieveAddress({{item.id}})">    修改 ></text>
                         </view>
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_PICKUP}}">预约取货时间:
+                        <view class="title mt10" wx:if="{{item.sendType==SENDTYPE_PICKUP}}">预约取货时间:
                             <text class="order_doc">{{item.pickupTime}}</text>
                         </view>
                         
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_PICKUP}}" @tap.stop='showPickupAddress({{item.pickupAddress}})'>预约取货地址:
+                        <view class="title mt10" wx:if="{{item.sendType==SENDTYPE_PICKUP}}" @tap.stop='showPickupAddress({{item.pickupAddress}})'>预约取货地址:
                             <text class="order_doc">{{item.pickupAddress.detail}}--地址导航</text>
                         </view>
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_THIRDSEND&&item.status==ORDERSTATUS_DOING}}">快递单号:
+                        <view class="title mt10" wx:if="{{item.sendType==SENDTYPE_THIRDSEND&&item.status==ORDERSTATUS_DOING}}">快递单号:
                             <text class="order_doc">{{item.thirdsendNo}}</text>
                         </view>
-                        <view class="title mt10" wx:if="{{item.sendtype==SENDTYPE_OWNSEND&&item.status==ORDERSTATUS_DOING}}">送货员:
+                        <view class="title mt10" wx:if="{{item.sendType==SENDTYPE_OWNSEND&&item.status==ORDERSTATUS_DOING}}">送货员:
                             <text class="order_doc">{{item.thirdsendNo}}</text>
                         </view>
                     </view>
@@ -70,7 +70,7 @@ import {
   ORDERSTATUS_OVERTIME
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import shoporderapi from '../api/shoporderapi';
+import ShopOrderAPI from '../api/ShopOrderAPI';
 import tip from '../utils/tip';
 export default class OrderItem extends wepy.component {
   props = {
@@ -95,10 +95,10 @@ export default class OrderItem extends wepy.component {
     shopItemList: ShopItemList
   };
   methods = {
-    deleteShopOrder(shoporderid) {
+    deleteShopOrder(shopOrderId) {
       let that = this;
-      shoporderapi
-        .deleteUserShopOrder(GlobalData.getUserId(), shoporderid)
+      ShopOrderAPI
+        .deleteUserShopOrder(GlobalData.getUsername(), shopOrderId)
         .then(res => {
           let response = res.data || {};
           if (response.code != 200) {
@@ -106,7 +106,7 @@ export default class OrderItem extends wepy.component {
           }
           let tmpArray = [];
           that.shoporderList.forEach(element => {
-            if (element.id != shoporderid) {
+            if (element.id != shopOrderId) {
               tmpArray.push(element);
             }
           });
@@ -115,10 +115,10 @@ export default class OrderItem extends wepy.component {
           that.$apply();
         });
     },
-    confirmShopOrder(shoporderid) {
+    confirmShopOrder(shopOrderId) {
       let that = this;
-      shoporderapi
-        .confirmUserShopOrderFinished(GlobalData.getUserId(), shoporderid)
+      ShopOrderAPI
+        .confirmUserShopOrderFinished(GlobalData.getUsername(), shopOrderId)
         .then(res => {
           let response = res.data || {};
           if (response.code != 200) {
@@ -136,7 +136,7 @@ export default class OrderItem extends wepy.component {
           tip.alert(tipContent);
           let tmpArray = [];
           that.shoporderList.forEach(element => {
-            if (element.id != shoporderid) {
+            if (element.id != shopOrderId) {
               tmpArray.push(element);
             }
           });
@@ -154,9 +154,9 @@ export default class OrderItem extends wepy.component {
         address: pickupAddress.detail
       });
     },
-    changeRecieveAddress(shoporderid) {
+    changeRecieveAddress(shopOrderId) {
       wepy.navigateTo({
-        url: '/pages/address?type=shoporder&shoporderid=' + shoporderid
+        url: '/pages/address?type=shoporder&shop_order_id=' + shopOrderId
       });
     }
   };

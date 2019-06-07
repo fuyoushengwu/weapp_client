@@ -1,33 +1,33 @@
 <template>
     <view class="order_detail">
         <view class="address_block">
-            <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND||shoporder.sendtype==SENDTYPE_THIRDSEND}}">
+            <view class="address" wx:if="{{shoporder.sendType==SENDTYPE_OWNSEND||shoporder.sendType==SENDTYPE_THIRDSEND}}">
                 <text class="title">收货地址:</text>
                 <text class="content">{{shoporder.recieveAddress.detail}}</text>
                 <text class="content" wx:if="{{shoporder.status==ORDERSTATUS_UNSTART||shoporder.status==ORDERSTATUS_PREORDER}}" @tap.stop="setAddress({{shoporder.id}})">    修改 ></text>
             </view>
 
-             <view class="address" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}" @tap.stop='mapPickupAddress({{shoporder.pickupAddress}})'>
+             <view class="address" wx:if="{{shoporder.sendType==SENDTYPE_PICKUP}}" @tap.stop='mapPickupAddress({{shoporder.pickupAddress}})'>
                 <text class="title">预约取货地址:</text>
                 <text class="content">{{shoporder.pickupAddress.detail}}--地址导航</text>
             </view>
 
-            <view class="name" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND||shoporder.sendtype==SENDTYPE_THIRDSEND}}">
+            <view class="name" wx:if="{{shoporder.sendType==SENDTYPE_OWNSEND||shoporder.sendType==SENDTYPE_THIRDSEND}}">
                 <text class="title">收货人:</text>
                 <text class="content">{{shoporder.recieveAddress.reciever}}\t\t{{shoporder.recieveAddress.phone}}</text>
             </view>            
 
-            <view class="pickuptime" wx:if="{{shoporder.sendtype==SENDTYPE_PICKUP}}">
+            <view class="pickuptime" wx:if="{{shoporder.sendType==SENDTYPE_PICKUP}}">
                 <text class="title">预约取货时间:</text>
                 <text class="content">{{shoporder.pickupTime}}</text>
             </view>           
 
-            <view class="thirdsendno" wx:if="{{shoporder.sendtype==SENDTYPE_THIRDSEND&&shoporder.status==ORDERSTATUS_DOING}}">
+            <view class="thirdsendno" wx:if="{{shoporder.sendType==SENDTYPE_THIRDSEND&&shoporder.status==ORDERSTATUS_DOING}}">
                 <text class="title">快递单号:</text>
                 <text class="content">{{shoporder.thirdsendNo}}</text>
             </view>
 
-            <view class="sender" wx:if="{{shoporder.sendtype==SENDTYPE_OWNSEND&&shoporder.status==ORDERSTATUS_DOING}}">
+            <view class="sender" wx:if="{{shoporder.sendType==SENDTYPE_OWNSEND&&shoporder.status==ORDERSTATUS_DOING}}">
                 <text class="title">送货员:</text>
                 <text class="context">{{shoporder.thirdsendNo}}</text>
             </view>
@@ -73,7 +73,7 @@ import {
   ORDERSTATUS_FINISHED
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import shoporderapi from '../api/shoporderapi';
+import ShopOrderAPI from '../api/ShopOrderAPI';
 import tip from '../utils/tip';
 export default class OrderDetail extends wepy.page {
   config = {
@@ -91,20 +91,20 @@ export default class OrderDetail extends wepy.page {
     ORDERSTATUS_DOING,
     ORDERSTATUS_FINISHED,
     shoporder: {},
-    shoporderid: '',
+    shopOrderId: '',
     orderItemList: []
   };
 
   onLoad(options) {
-    this.shoporderid = options.shoporderid;
+    this.shopOrderId = options.shop_order_id;
     this.loadShopOrderInfo();
   }
 
   onShow() {
     // 处理订单还未处理前修改地址的逻辑
     let recieveAddress = GlobalData.getSelectedRecieveAddress();
-    let shoporderid = GlobalData.getCurShopOrderId();
-    if (shoporderid && recieveAddress) {
+    let shopOrderId = GlobalData.getCurShopOrderId();
+    if (shopOrderId && recieveAddress) {
       this.shoporder.recieveAddress = recieveAddress;
       GlobalData.clearSelectedRecieveAddress();
       GlobalData.clearCurShopOrderId();
@@ -113,8 +113,8 @@ export default class OrderDetail extends wepy.page {
 
   async loadShopOrderInfo() {
     let that = this;
-    shoporderapi
-      .getUserShopOrder(GlobalData.getUserId(), this.shoporderid)
+    ShopOrderAPI
+      .getUserShopOrder(GlobalData.getUsername(), this.shopOrderId)
       .then(res => {
         let response = res.data || {};
         if (response.code != 200) {
@@ -134,9 +134,9 @@ export default class OrderDetail extends wepy.page {
         url: '/pages/classify'
       });
     },
-    setAddress(shoporderid) {
+    setAddress(shopOrderId) {
       wepy.navigateTo({
-        url: '/pages/address?type=shoporder&shoporderid=' + shoporderid
+        url: '/pages/address?type=shoporder&shop_order_id=' + shopOrderId
       });
     },
     mapPickupAddress(pickupAddress) {

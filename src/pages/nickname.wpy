@@ -13,7 +13,7 @@
 <script>
 import wepy from 'wepy';
 import tip from '../utils/tip';
-import userapi from '../api/userapi';
+import UserAPI from '../api/UserAPI';
 import GlobalData from '../conf/globalData';
 export default class NickName extends wepy.page {
   config = {
@@ -31,7 +31,7 @@ export default class NickName extends wepy.page {
   async updateNickname(nickname) {
     let userInfo = GlobalData.getUserInfo();
     userInfo.nickname = nickname;
-    userapi.updateUser(GlobalData.getUserId(), userInfo).then(res => {
+    UserAPI.updateUser(GlobalData.getUsername(), userInfo).then(res => {
       let response = res.data || {};
       if (response.code == 200) {
         GlobalData.setUserInfo(response.data);

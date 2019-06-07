@@ -1,22 +1,25 @@
-import { wxRequest } from '../utils/wxRequest';
+import WXRequest from '../utils/wxRequest';
 
 /**
  * 获取用户
  *
- *  @param {*} userid
+ *  @param {*} username
  */
-function getUser(userid) {
-    return wxRequest(`/user/${userid}`)
+function getUser(username) {
+    if (username) {
+        return new WXRequest().request(`/user-service/user/${username}`)
+    }
+    return new WXRequest().request(`/user-service/user/`);
 }
 
 /**
  * 更新用户信息
  * 
- * @param {*} userid
+ * @param {*} username
  * @param {*} user
  */
-function updateUser(userid, user) {
-    return wxRequest(`/user/${userid}`, {
+function updateUser(username, user) {
+    return new WXRequest().request(`/user-service/user/${username}`, {
         method: 'PUT',
         data: user
     })
@@ -25,44 +28,34 @@ function updateUser(userid, user) {
 /**
  * 获取用户收件地址
  *
- * @param {*} userid
+ * @param {*} username
  */
-function getUserRecieveAddressList(userid) {
-    return wxRequest(`/user/${userid}/recieveaddress`)
+function getUserRecieveAddressList(username) {
+    return new WXRequest().request(`/user-service/user/${username}/recieveaddress`)
 }
 
 /**
  * 给用户添加收件地址
  * 
- * @param {*} userid
+ * @param {*} username
  * @param {*} request
  */
-function addUserRecieveAddress(userid, request) {
-    return wxRequest(`/user/${userid}/recieveaddress`, {
+function addUserRecieveAddress(username, request) {
+    return new WXRequest().request(`/user-service/user/${username}/recieveaddress`, {
         method: 'POST',
         data: request
     })
 }
 
 /**
- * 获取收件地址
- *
- * @param {*} userid
- * @param {*} addressid
- */
-function getRecieveAddress(userid, addressid) {
-    return wxRequest(`/user/${userid}/recieveaddress/${addressid}`)
-}
-
-/**
  * 更新收件地址信息
  * 
- * @param {*} userid
- * @param {*} addressid
+ * @param {*} username
+ * @param {*} addressId
  * @param {*} request
  */
-function updateRecieveAddress(userid, addressid, request) {
-    return wxRequest(`/user/${userid}/recieveaddress/${addressid}`, {
+function updateRecieveAddress(username, addressId, request) {
+    return new WXRequest().request(`/user-service/user/${username}/recieveaddress/${addressId}`, {
         method: 'PUT',
         data: request
     })
@@ -71,18 +64,17 @@ function updateRecieveAddress(userid, addressid, request) {
 /**
  * 废弃收件地址
  * 
- * @param {*} userid
- * @param {*} addressid
+ * @param {*} username
+ * @param {*} addressId
  */
-function deprecateRecieveAddress(userid, addressid) {
-    return wxRequest(`/user/${userid}/recieveaddress/${addressid}`, { method: 'DELETE' })
+function deprecateRecieveAddress(username, addressId) {
+    return new WXRequest().request(`/user-service/user/${username}/recieveaddress/${addressId}`, { method: 'DELETE' })
 }
 module.exports = {
     getUser,
     updateUser,
     getUserRecieveAddressList,
     addUserRecieveAddress,
-    getRecieveAddress,
     updateRecieveAddress,
     deprecateRecieveAddress
 }

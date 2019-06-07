@@ -1,11 +1,11 @@
-import storeapi from '../api/storeapi';
+import StoreAPI from '../api/StoreAPI';
 import tip from './tip';
 
 /**
  * 获取根据位置排序的门店信息
  */
 function getStoreOrderedByDistance() {
-    return storeapi.getInUseStoreList(1, 20).then(res => {
+    return StoreAPI.getInUseStoreList(1, 20).then(res => {
         let response = res.data || {};
         if (response.code != 200) {
             tip.error("获取门店信息失败");

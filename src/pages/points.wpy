@@ -32,7 +32,7 @@ import wepy from 'wepy';
 import PointsDetail from '../components/points_detail';
 import { SYSTEM_INFO } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import couponapi from '../api/couponapi';
+import CouponAPI from '../api/CouponAPI';
 export default class Points extends wepy.page {
   config = {
     navigationBarTitleText: '我的积分'
@@ -62,7 +62,7 @@ export default class Points extends wepy.page {
     this.userPoint = userInfo.genericScore;
 
     let that = this;
-    couponapi.getUserVoucherList(GlobalData.getUserId(), 1, 10).then(res => {
+    CouponAPI.getUserVoucherList(GlobalData.getUsername(), 1, 10).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         return;
@@ -71,16 +71,16 @@ export default class Points extends wepy.page {
       getUserVoucherListResponse.dataList.forEach(uservoucher => {
         if (
           !uservoucher.goodVoucher ||
-          !uservoucher.goodVoucher.voucheritemIdList
+          !uservoucher.goodVoucher.voucherItemIdList
         ) {
           return;
         }
-        uservoucher.goodVoucher.voucheritemList = [];
-        uservoucher.goodVoucher.voucheritemIdList.forEach(voucheritemId => {
-          couponapi.getVoucherItem(voucheritemId).then(res => {
+        uservoucher.goodVoucher.voucherItemList = [];
+        uservoucher.goodVoucher.voucherItemIdList.forEach(voucherItemId => {
+          CouponAPI.getVoucherItem(voucherItemId).then(res => {
             let response = res.data || {};
             if (response.code == 200) {
-              uservoucher.goodVoucher.voucheritemList.push(response.data);
+              uservoucher.goodVoucher.voucherItemList.push(response.data);
               that.$apply();
             }
           });

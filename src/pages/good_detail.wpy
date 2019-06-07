@@ -83,8 +83,8 @@
 import wepy from 'wepy';
 import { SYSTEM_INFO } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import goodapi from '../api/goodapi';
-import shopcartapi from '../api/shopcartapi';
+import GoodAPI from '../api/GoodAPI';
+import ShopCartAPI from '../api/ShopCartAPI';
 import tip from '../utils/tip';
 export default class GoodDetail extends wepy.page {
   config = {
@@ -94,7 +94,7 @@ export default class GoodDetail extends wepy.page {
     // 样式值:顶层view高度
     winHeight: '100%',
     // 商品ID
-    goodid: undefined,
+    goodId: undefined,
     // 商品信息(商品信息和商品详情是分开的)
     good: {},
     // 商品详细信息
@@ -109,7 +109,7 @@ export default class GoodDetail extends wepy.page {
     hidden: true
   };
   onLoad(option) {
-    this.goodid = option.goodid;
+    this.goodId = option.good_id;
     this.loadGood();
     this.loadGoodDetail();
   }
@@ -126,7 +126,7 @@ export default class GoodDetail extends wepy.page {
   onShareAppMessage() {
     return {
       title: '商品详情',
-      path: `pages/good_detail?goodid=${this.goodid}`,
+      path: `pages/good_detail?good_id=${this.goodId}`,
       fail: function(res) {
         tip.error(res.errMsg);
       }
@@ -134,7 +134,7 @@ export default class GoodDetail extends wepy.page {
   }
   async loadGood() {
     let that = this;
-    goodapi.getGood(this.goodid).then(res => {
+    GoodAPI.getGood(this.goodId).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         tip.error('无法获取商品信息');
@@ -147,7 +147,7 @@ export default class GoodDetail extends wepy.page {
 
   async loadGoodDetail() {
     let that = this;
-    goodapi.getGoodDetail(this.goodid).then(res => {
+    GoodAPI.getGoodDetail(this.goodId).then(res => {
       let response = res.data || {};
       if (response.code != 200) {
         tip.error('无法获取商品信息');
@@ -174,9 +174,9 @@ export default class GoodDetail extends wepy.page {
   // 加入购物车
   async doAddToShopCart() {
     let that = this;
-    shopcartapi
-      .addShopCartItem(GlobalData.getUserId(), {
-        goodid: this.goodid,
+    ShopCartAPI
+      .addShopCartItem(GlobalData.getUsername(), {
+        goodId: this.goodId,
         goodNum: this.orderNum
       })
       .then(res => {
@@ -198,8 +198,8 @@ export default class GoodDetail extends wepy.page {
   }
   // 立即购买
   async doBuyDirect() {
-    let json = await shopcartapi.addShopCartItem(GlobalData.getUserId(), {
-      goodid: this.goodid,
+    let json = await ShopCartAPI.addShopCartItem(GlobalData.getUsername(), {
+      goodId: this.goodId,
       goodNum: this.orderNum
     });
 
@@ -216,7 +216,7 @@ export default class GoodDetail extends wepy.page {
         this.$apply();
       }, 100);
       wepy.navigateTo({
-        url: '/pages/confirm_order?goodid=' + this.goodid
+        url: '/pages/confirm_order?good_id=' + this.goodId
       });
     } else {
       tip.error('该商品无法购买');
@@ -224,8 +224,8 @@ export default class GoodDetail extends wepy.page {
   }
 
   async doTakePreOrder() {
-    let json = await shopcartapi.addShopCartItem(GlobalData.getUserId(), {
-      goodid: this.goodid,
+    let json = await ShopCartAPI.addShopCartItem(GlobalData.getUsername(), {
+      goodId: this.goodId,
       goodNum: this.orderNum
     });
     let response = json.data || {};
@@ -241,7 +241,7 @@ export default class GoodDetail extends wepy.page {
         this.$apply();
       }, 100);
       wepy.navigateTo({
-        url: `/pages/confirm_order?goodid=${this.goodid}`
+        url: `/pages/confirm_order?good_id=${this.goodId}`
       });
     } else {
       tip.error('该商品无法购买');

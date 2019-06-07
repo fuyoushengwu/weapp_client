@@ -18,7 +18,7 @@
         <scroll-view class="classify_detail" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
           <view class="children">
             <navigator hover-class="none" class="children_item" wx:for="{{subClassifyList}}" wx:for-item="item" wx:key="id" 
-                url="/pages/search?classifyid={{item.id}}&title={{item.name}}">
+                url="/pages/search?classify_id={{item.id}}&title={{item.name}}">
               <image class="child_image" src="{{item.coverImg}}"/>
               <view class="child_name">{{item.name}}</view>
             </navigator>
@@ -30,7 +30,7 @@
 <script>
 import wepy from 'wepy';
 import { SYSTEM_INFO } from '../utils/constant';
-import classifyapi from '../api/classifyapi';
+import ClassifyAPI from '../api/ClassifyAPI';
 import GlobalData from '../conf/globalData';
 export default class Classify extends wepy.page {
   config = {
@@ -71,7 +71,7 @@ export default class Classify extends wepy.page {
     this.inRequesting = true;
     wx.showNavigationBarLoading();
     let that = this;
-    classifyapi.getTopClassifyList().then(res => {
+    ClassifyAPI.getTopClassifyList().then(res => {
       that.inRequesting = false;
       wx.hideNavigationBarLoading();
       wx.stopPullDownRefresh();
@@ -95,7 +95,7 @@ export default class Classify extends wepy.page {
     }
     this.inRequesting = true;
     let that = this;
-    classifyapi.getSubClassifyList(this.topClassifyId).then(res => {
+    ClassifyAPI.getSubClassifyList(this.topClassifyId).then(res => {
       that.inRequesting = false;
       let response = res.data || {};
       if (response.code == 200) {
