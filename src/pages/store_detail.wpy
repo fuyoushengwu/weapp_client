@@ -42,6 +42,12 @@ export default class StoreDetail extends wepy.page {
       let response = res.data || {};
       if (response.code == 200) {
         that.curStore = response.data;
+        that.curStore.coverImg = that.curStore.coverImg.url;
+        let tmp = [];
+        that.curStore.detailImgList.forEach(element => {
+          tmp.push(element.url);
+        });
+        that.curStore.detailImgList = tmp;
         that.$apply();
       }
     });

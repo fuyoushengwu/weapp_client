@@ -13,7 +13,7 @@
                 size="20"
               />
               <view class="img-box">
-                <image class="img" src="{{item.good.coverImg}}"/>
+                <image class="img" src="{{item.good.coverImg.url}}"/>
               </view>
               <view class="text-box">
                 <view class="goods-title">

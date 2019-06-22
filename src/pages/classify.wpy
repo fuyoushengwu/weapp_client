@@ -19,7 +19,7 @@
           <view class="children">
             <navigator hover-class="none" class="children_item" wx:for="{{subClassifyList}}" wx:for-item="item" wx:key="id" 
                 url="/pages/search?classify_id={{item.id}}&title={{item.name}}">
-              <image class="child_image" src="{{item.coverImg}}"/>
+              <image class="child_image" src="{{item.coverImg.url}}"/>
               <view class="child_name">{{item.name}}</view>
             </navigator>
           </view>

@@ -6,7 +6,7 @@
           <swipeDelete :swipeData="item" @delItem.user="deleteShopItem">
             <view class="goods-info">
               <view class="img-box">
-                <image src="{{item.good.coverImg}}" class="img"/>
+                <image src="{{item.good.coverImg.url}}" class="img"/>
               </view>
               <view class="text-box">
                 <view class="goods-title">{{item.good.name}}</view>

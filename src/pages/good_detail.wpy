@@ -52,7 +52,7 @@
         <view class="model_content">
           <view class="head_box">
             <view class="img_wrap">
-              <image class="goods_img" src="{{good.coverImg}}"/>
+              <image class="goods_img" src="{{good.coverImg.url}}"/>
             </view>
             <view class="product_wrap">
               <view class="product_name">{{good.name}}</view>
@@ -154,6 +154,11 @@ export default class GoodDetail extends wepy.page {
         return;
       }
       that.goodDetail = response.data;
+      let tmp = [];
+      that.goodDetail.detailImgList.forEach(element => {
+        tmp.push(element.url);
+      });
+      that.goodDetail.detailImgList = tmp;
       that.$apply();
     });
   }
