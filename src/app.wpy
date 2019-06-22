@@ -8,7 +8,7 @@
 import wepy from 'wepy';
 import 'wepy-async-function';
 import GlobalData from './conf/globalData';
-import UserAPI from './api/UserAPI';
+import UserAPI from './api/userapi';
 import { SYSTEM_INFO, INFO_REQUEST_PERMISSION } from './utils/constant';
 export default class extends wepy.app {
   config = {

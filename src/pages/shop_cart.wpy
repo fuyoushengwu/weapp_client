@@ -7,7 +7,7 @@
 import wepy from 'wepy';
 import ShopCart from '../components/shop_cart';
 import GlobalData from '../conf/globalData';
-import ShopCartAPI from '../api/ShopCartAPI';
+import ShopCartAPI from '../api/shopcartapi';
 export default class shopCart extends wepy.page {
   config = {
     navigationBarTitleText: '购物车'

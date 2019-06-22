@@ -67,10 +67,10 @@
 </template>
 <script>
 import { USER_INFO } from '../utils/constant';
-import UserMessageAPI from '../api/UserMessageAPI';
+import UserMessageAPI from '../api/usermessageapi';
 import wepy from 'wepy';
 import BombScreen from '../components/bomb_screen';
-import API from '../api/API';
+import API from '../api/api';
 import tip from '../utils/tip';
 export default class Info extends wepy.page {
   config = {

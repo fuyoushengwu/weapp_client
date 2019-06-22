@@ -1,7 +1,7 @@
 import GlobalData from '../conf/globalData';
-import AuthAPI from './AuthAPI'
+import AuthAPI from './authapi'
 import config from '../conf/config';
-import UserAPI from './UserAPI'
+import UserAPI from './userapi'
 import tip from '../utils/tip';
 
 /**

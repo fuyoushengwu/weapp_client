@@ -31,7 +31,7 @@ import {
   ORDERSTATUS_FINISHED
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import ShopOrderAPI from '../api/ShopOrderAPI';
+import ShopOrderAPI from '../api/shoporderapi';
 import tip from '../utils/tip';
 export default class Order extends wepy.page {
   config = {

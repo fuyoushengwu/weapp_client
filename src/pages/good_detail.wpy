@@ -83,8 +83,8 @@
 import wepy from 'wepy';
 import { SYSTEM_INFO } from '../utils/constant';
 import GlobalData from '../conf/globalData';
-import GoodAPI from '../api/GoodAPI';
-import ShopCartAPI from '../api/ShopCartAPI';
+import GoodAPI from '../api/goodapi';
+import ShopCartAPI from '../api/shopcartapi';
 import tip from '../utils/tip';
 export default class GoodDetail extends wepy.page {
   config = {

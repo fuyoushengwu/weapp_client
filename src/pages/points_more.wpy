@@ -10,7 +10,7 @@ import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import PointsDetail from '../components/points_detail';
 import GlobalData from '../conf/globalData';
-import CouponAPI from '../api/CouponAPI';
+import CouponAPI from '../api/couponapi';
 import tip from '../utils/tip';
 export default class PointsMore extends wepy.page {
   config = {

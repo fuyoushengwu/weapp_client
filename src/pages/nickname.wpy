@@ -13,7 +13,7 @@
 <script>
 import wepy from 'wepy';
 import tip from '../utils/tip';
-import UserAPI from '../api/UserAPI';
+import UserAPI from '../api/userapi';
 import GlobalData from '../conf/globalData';
 export default class NickName extends wepy.page {
   config = {

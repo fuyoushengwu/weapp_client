@@ -30,7 +30,7 @@ import wepy from 'wepy';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import GlobalData from '../conf/globalData';
-import UserMessageAPI from '../api/UserMessageAPI';
+import UserMessageAPI from '../api/usermessageapi';
 import tip from '../utils/tip';
 export default class Messages extends wepy.page {
   config = {

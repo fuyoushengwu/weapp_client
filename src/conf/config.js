@@ -3,8 +3,7 @@
  */
 
 // 此处主机域名修改成腾讯云解决方案分配的域名
-// var host = 'https://www.aijiamuyingfang.cn';
-var host = 'http://192.168.0.203:8080'
+var host = 'https://www.aijiamuyingfang.cn:8443';
 
 var config = {
 

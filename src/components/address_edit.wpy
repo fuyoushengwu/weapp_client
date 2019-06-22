@@ -47,7 +47,7 @@
 import wepy from 'wepy';
 import AreaPicker from './common/area-picker';
 import GlobalData from '../conf/globalData';
-import UserAPI from '../api/UserAPI';
+import UserAPI from '../api/userapi';
 import tip from '../utils/tip';
 export default class AddressEdit extends wepy.component {
   data = {

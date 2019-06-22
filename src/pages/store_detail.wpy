@@ -30,7 +30,7 @@
 </template>
 <script>
 import wepy from 'wepy';
-import StoreAPI from '../api/StoreAPI';
+import StoreAPI from '../api/storeapi';
 export default class StoreDetail extends wepy.page {
   data = {
     // 当前门店信息

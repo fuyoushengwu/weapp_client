@@ -58,7 +58,7 @@
 import wepy from 'wepy';
 import swipeDelete from './common/swipe-delete';
 import GlobalData from '../conf/globalData';
-import ShopCartAPI from '../api/ShopCartAPI';
+import ShopCartAPI from '../api/shopcartapi';
 import tip from '../utils/tip';
 export default class shopCart extends wepy.component {
   data = {

@@ -1,4 +1,4 @@
-import StoreAPI from '../api/StoreAPI';
+import StoreAPI from '../api/storeapi';
 import tip from './tip';
 
 /**

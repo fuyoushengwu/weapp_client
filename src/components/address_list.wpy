@@ -31,8 +31,8 @@
 import wepy from 'wepy';
 import SwipeDelete from './common/swipe-delete';
 import GlobalData from '../conf/globalData';
-import ShopOrderAPI from '../api/ShopOrderAPI';
-import UserAPI from '../api/UserAPI';
+import ShopOrderAPI from '../api/shoporderapi';
+import UserAPI from '../api/userapi';
 import tip from '../utils/tip';
 export default class AddressList extends wepy.component {
   props = {

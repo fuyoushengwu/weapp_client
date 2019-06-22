@@ -30,7 +30,7 @@
 <script>
 import wepy from 'wepy';
 import { SYSTEM_INFO } from '../utils/constant';
-import ClassifyAPI from '../api/ClassifyAPI';
+import ClassifyAPI from '../api/classifyapi';
 import GlobalData from '../conf/globalData';
 export default class Classify extends wepy.page {
   config = {

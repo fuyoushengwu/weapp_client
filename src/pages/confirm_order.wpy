@@ -160,10 +160,10 @@ import {
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import util from '../utils/util';
-import PreviewAPI from '../api/PreviewAPI';
-import ShopOrderAPI from '../api/ShopOrderAPI';
-import ShopCartAPI from '../api/ShopCartAPI';
-import StoreAPI from '../api/StoreAPI';
+import PreviewAPI from '../api/previewapi';
+import ShopOrderAPI from '../api/shoporderapi';
+import ShopCartAPI from '../api/shopcartapi';
+import StoreAPI from '../api/storeapi';
 import tip from '../utils/tip';
 
 export default class ConfirmOrder extends wepy.page {

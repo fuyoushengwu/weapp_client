@@ -17,8 +17,8 @@ import FilterBar from '../components/filter_bar';
 import GoodGridList from '../components/good_grid_list';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
-import GoodAPI from '../api/GoodAPI';
-import CouponAPI from '../api/CouponAPI';
+import GoodAPI from '../api/goodapi';
+import CouponAPI from '../api/couponapi';
 import tip from '../utils/tip';
 export default class Search extends wepy.page {
   config = {
