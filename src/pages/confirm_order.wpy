@@ -34,7 +34,7 @@
           range-key="name"
           value="{{sendType}}"
         >
-          <view class="right">{{sendType!=SENDTYPE_UNKNOW?sendTypeArray[sendType].name:'请选择配送方式'}}</view>
+          <view class="right">{{sendTypeArray[sendType].name}}</view>
         </picker>
       </view>
       <view class="block" wx:if="{{sendType==SENDTYPE_PICKUP}}">
@@ -181,7 +181,7 @@ export default class ConfirmOrder extends wepy.page {
 
     previeworderItemList: [],
     // 卖家留言
-    businessMessage: '',
+    buyerMessage: '',
     // 订单中商品总价
     totalGoodsPrice: 0,
     // 快递费
@@ -192,6 +192,9 @@ export default class ConfirmOrder extends wepy.page {
     // 送货方式
     sendTypeArray: [
       {
+        name: '请选择配送方式'
+      },
+      {
         name: '到店自取'
       },
       {
@@ -201,10 +204,10 @@ export default class ConfirmOrder extends wepy.page {
         name: '快递'
       }
     ],
-    // 配送方式:0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
+    // 配送方式:0:未知类型(unknow); 1:到店自取(pickup); 2:送货上门(ownsend); 3:快递(thirdsend);
     sendType: SENDTYPE_UNKNOW,
 
-    // 订单状态:0:未知类型,1:预订;2:未开始;3:进行中;4:已完成;5:订单超时
+    // 订单状态:0:未知类型(unkown); 1:预订(preorder); 2:未开始(unstart); 3:进行中(doing); 4:已完成(finished); 5:订单超时(overtime)
     orderstatus: ORDERSTATUS_UNKNOW,
 
     pickupStoreArray: [],
@@ -220,7 +223,7 @@ export default class ConfirmOrder extends wepy.page {
     // 用户信息
     userInfo: {},
     // 用户可用兑换券
-    uservoucherList: [],
+    shoporderVoucherList: [],
     // 使用的专用积分
     voucher_price: 0,
     // 使用的通用积分
@@ -255,44 +258,46 @@ export default class ConfirmOrder extends wepy.page {
     if (this.goodId) {
       goodIdList.push(this.goodId);
     }
-    PreviewAPI.generatePreviewOrder(this.userInfo.username, goodIdList).then(res => {
-      let response = res.data || {};
-      if (response.code != 200) {
-        tip.error('订单预览失败,请等待商家修复');
-        return;
-      }
-      let previewOrder = response.data;
-      that.previeworderItemList = previewOrder.orderItemList;
-      that.getUserVoucherList();
-      that.totalGoodsPrice = 0;
-      that.previeworderItemList.forEach(previeworderItem => {
-        if (previeworderItem.good.count == 0) {
-          that.orderstatus = ORDERSTATUS_PREORDER;
-          previeworderItem.msg = '该商品已卖完,需要提前预订';
-        } else if (previeworderItem.count > previeworderItem.good.count) {
-          previeworderItem.count = previeworderItem.good.count;
-          ShopCartAPI.updateShopCartItemCount(
-            that.userInfo.username,
-            previeworderItem.shopcartItemId,
-            previeworderItem.count
-          );
-          PreviewAPI.updatePreviewOrderItem(
-            that.userInfo.username,
-            previeworderItem.id,
-            {
-              count: previeworderItem.count
-            }
-          );
-          previeworderItem.msg = `该商品只剩${previeworderItem.count}件`;
+    PreviewAPI.generatePreviewOrder(this.userInfo.username, goodIdList).then(
+      res => {
+        let response = res.data || {};
+        if (response.code != 200) {
+          tip.error('订单预览失败,请等待商家修复');
+          return;
         }
-        that.totalGoodsPrice +=
-          previeworderItem.count * previeworderItem.good.price;
-      });
+        let previewOrder = response.data;
+        that.previeworderItemList = previewOrder.orderItemList;
+        that.getUserVoucherList();
+        that.totalGoodsPrice = 0;
+        that.previeworderItemList.forEach(previeworderItem => {
+          if (previeworderItem.good.count == 0) {
+            that.orderstatus = ORDERSTATUS_PREORDER;
+            previeworderItem.msg = '该商品已卖完,需要提前预订';
+          } else if (previeworderItem.count > previeworderItem.good.count) {
+            previeworderItem.count = previeworderItem.good.count;
+            ShopCartAPI.updateShopCartItemCount(
+              that.userInfo.username,
+              previeworderItem.shopcartItemId,
+              previeworderItem.count
+            );
+            PreviewAPI.updatePreviewOrderItem(
+              that.userInfo.username,
+              previeworderItem.id,
+              {
+                count: previeworderItem.count
+              }
+            );
+            previeworderItem.msg = `该商品只剩${previeworderItem.count}件`;
+          }
+          that.totalGoodsPrice +=
+            previeworderItem.count * previeworderItem.good.price;
+        });
 
-      // that.is_exist_address = false;
-      // that.recieveAddress = previewOrder.defaultAddress;
-      that.$apply();
-    });
+        // that.is_exist_address = false;
+        // that.recieveAddress = previewOrder.defaultAddress;
+        that.$apply();
+      }
+    );
   }
 
   async getUserVoucherList() {
@@ -306,20 +311,22 @@ export default class ConfirmOrder extends wepy.page {
     });
 
     let that = this;
-    ShopOrderAPI
-      .getUserShopOrderVoucherList(this.userInfo.username, goodIdList)
-      .then(res => {
-        let response = res.data || {};
-        if (response.code != 200) {
-          return;
-        }
-        let getUserShopOrderVoucherListResponse = response.data;
-        that.uservoucherList = getUserShopOrderVoucherListResponse.voucherList;
-        that.uservoucherList.forEach(element => {
-          that.voucher_price += element.good.price;
-        });
-        that.$apply();
+    ShopOrderAPI.getUserShopOrderVoucherList(
+      this.userInfo.username,
+      goodIdList
+    ).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
+      let getUserShopOrderVoucherListResponse = response.data;
+      that.shoporderVoucherList =
+        getUserShopOrderVoucherListResponse.voucherList;
+      that.shoporderVoucherList.forEach(shoporderVoucher => {
+        that.voucher_price += shoporderVoucher.good.price;
       });
+      that.$apply();
+    });
   }
 
   async getPickupOptions() {
@@ -420,7 +427,7 @@ export default class ConfirmOrder extends wepy.page {
     } else if (this.sendType == SENDTYPE_THIRDSEND) {
       submitRequest.addressId = this.recieveAddress.id;
     }
-    submitRequest.businessMessage = this.businessMessage;
+    submitRequest.buyerMessage = this.buyerMessage;
     submitRequest.formid = formid;
 
     if (this.orderstatus == ORDERSTATUS_PREORDER) {
@@ -437,19 +444,17 @@ export default class ConfirmOrder extends wepy.page {
     );
     let response = json.data || {};
     if (response.code == 200) {
-      ShopCartAPI
-        .getShopCartItemList(GlobalData.getUsername(), 1, 10)
-        .then(res => {
+      ShopCartAPI.getShopCartItemList(GlobalData.getUsername(), 1, 10).then(
+        res => {
           let response = res.data || {};
           if (response.code == 200) {
             GlobalData.setShopCartList(response.data.dataList);
           }
-        });
+        }
+      );
       tip.alert('订单提交成功');
       wepy.redirectTo({
-        url: `/pages/shoporder?send_type=${submitRequest.sendType}&orderstatus=${
-          submitRequest.status
-        }`
+        url: `/pages/shoporder?send_type=${submitRequest.sendType}&orderstatus=${submitRequest.status}`
       });
     } else {
       tip.error('提交订单失败');
@@ -565,7 +570,7 @@ export default class ConfirmOrder extends wepy.page {
       this.doSubmitOrder(formid);
     },
     bindKeyInput(e) {
-      this.businessMessage = e.detail.value;
+      this.buyerMessage = e.detail.value;
     },
     deleteShopItem(previewgood) {
       this.deletePreviewGood(previewgood);

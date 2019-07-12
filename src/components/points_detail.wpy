@@ -61,9 +61,8 @@ export default class PointsDetail extends wepy.component {
       let voucherItem =
         userVoucher.goodVoucher.voucherItemList[voucherItemIndex];
       if (userVoucher.score >= voucherItem.score) {
-        let goodId = voucherItem.goodId;
         wepy.navigateTo({
-          url: '/pages/good_detail?good_id=' + goodId
+          url: '/pages/good_detail?good_id=' + voucherItem.good.id
         });
       } else {
         tip.alert(

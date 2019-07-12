@@ -1,6 +1,6 @@
 <template>
   <view class="container">
-    <filterBar @refresh.user="refresh" :goods.sync="goodList"/>
+    <filterBar @refresh.user="refresh" :goods.sync="goodList" />
     <view wx:if="{{goodList.length>0}}">
       <!--矩阵商品列表模块-->
       <goodGridList :goodList.sync="goodList"></goodGridList>
@@ -18,7 +18,6 @@ import GoodGridList from '../components/good_grid_list';
 import BottomLoadMore from '../components/common/bottomLoadMore';
 import Placeholder from '../components/common/placeholder';
 import GoodAPI from '../api/goodapi';
-import CouponAPI from '../api/couponapi';
 import tip from '../utils/tip';
 export default class Search extends wepy.page {
   config = {
@@ -97,59 +96,44 @@ export default class Search extends wepy.page {
     wx.showNavigationBarLoading();
     this.inRequesting = true;
     let that = this;
-    GoodAPI
-      .getClassifyGoodList(
-        classifyId,
-        queryParam.packFilter,
-        queryParam.levelFilter,
-        queryParam.orderType,
-        queryParam.orderValue,
-        this.currentPage,
-        this.pageSize
-      )
-      .then(res => {
-        that.gettingmore = false;
-        that.inRequesting = false;
-        wx.hideNavigationBarLoading();
-        if (pulldown) {
-          wx.stopPullDownRefresh();
-        }
-        let response = res.data || {};
-        if (response.code != 200) {
-          return;
-        }
+    GoodAPI.getClassifyGoodList(
+      classifyId,
+      queryParam.packFilter,
+      queryParam.levelFilter,
+      queryParam.orderType,
+      queryParam.orderValue,
+      this.currentPage,
+      this.pageSize
+    ).then(res => {
+      that.gettingmore = false;
+      that.inRequesting = false;
+      wx.hideNavigationBarLoading();
+      if (pulldown) {
+        wx.stopPullDownRefresh();
+      }
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
 
-        let getClassifyGoodListResponse = response.data;
-        that.currentPage = getClassifyGoodListResponse.currentPage;
-        that.totalpage = getClassifyGoodListResponse.totalpage;
-        if (init || pulldown) {
-          that.goodList = getClassifyGoodListResponse.dataList;
-        } else {
-          that.goodList = [
-            ...that.goodList,
-            ...getClassifyGoodListResponse.dataList
-          ];
-        }
-
-        that.goodList.forEach(good => {
-          if (good.voucherId) {
-            CouponAPI.getGoodVoucher(good.voucherId).then(res => {
-              let response = res.data || {};
-              if (response.code == 200) {
-                good.goodvoucher = response.data;
-                that.$apply();
-              }
-            });
-          }
-        });
-
-        if (that.goodList.length != 0) {
-          that.is_empty = false;
-        } else {
-          that.is_empty = true;
-        }
-        that.$apply();
-      });
+      let getClassifyGoodListResponse = response.data;
+      that.currentPage = getClassifyGoodListResponse.currentPage;
+      that.totalpage = getClassifyGoodListResponse.totalpage;
+      if (init || pulldown) {
+        that.goodList = getClassifyGoodListResponse.dataList;
+      } else {
+        that.goodList = [
+          ...that.goodList,
+          ...getClassifyGoodListResponse.dataList
+        ];
+      }
+      if (that.goodList.length != 0) {
+        that.is_empty = false;
+      } else {
+        that.is_empty = true;
+      }
+      that.$apply();
+    });
   }
 
   methods = {

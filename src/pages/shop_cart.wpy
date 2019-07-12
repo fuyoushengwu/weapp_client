@@ -46,29 +46,28 @@ export default class shopCart extends wepy.page {
     this.inRequesting = true;
     this.currentPage += 1;
     let that = this;
-    ShopCartAPI
-      .getShopCartItemList(
-        GlobalData.getUsername(),
-        this.currentPage,
-        this.pageSize
-      )
-      .then(res => {
-        that.inRequesting = false;
-        let response = res.data || {};
-        if (response.code != 200) {
-          return;
-        }
-        let getShopCartListResponse = response.data;
-        that.currentPage = getShopCartListResponse.currentPage;
-        that.totalpage = getShopCartListResponse.totalpage;
-        that.shopCartList = [
-          ...that.shopCartList,
-          ...getShopCartListResponse.dataList
-        ];
-        GlobalData.setShopCartList(that.shopCartList);
-        that.$invoke('shopCart', 'updateShopCartList', that.shopCartList);
-        that.$apply();
-      });
+    ShopCartAPI.getShopCartItemList(
+      GlobalData.getUsername(),
+      this.currentPage,
+      this.pageSize
+    ).then(res => {
+      that.inRequesting = false;
+      let response = res.data || {};
+      if (response.code != 200) {
+        return;
+      }
+      let getShopCartListResponse = response.data;
+      that.currentPage = getShopCartListResponse.currentPage;
+      that.totalpage = getShopCartListResponse.totalpage;
+
+      that.shopCartList = [
+        ...that.shopCartList,
+        ...getShopCartListResponse.dataList
+      ];
+      GlobalData.setShopCartList(that.shopCartList);
+      that.$invoke('shopCart', 'updateShopCartList', that.shopCartList);
+      that.$apply();
+    });
   }
 }
 </script>

@@ -1,19 +1,19 @@
 <template>
-    <repeat for="{{shopitemList}}" key="index" index="index" item="item">
-        <view class="good_list">
-            <view class="image_box">
-                <image src="{{item.good.coverImg.url}}"/>
-            </view>
-            <view class="goods">
-                <view class="product_name">{{item.good.name}}</view>
-                <view class="product_rule">规格:{{item.good.level}}</view>
-                <view class="product_info">
-                    <view class="price">￥{{item.good.price}}</view>
-                    <view class="goods_num">x{{item.count}}</view>
-                </view>
-            </view>
+  <repeat for="{{shopitemList}}" key="index" index="index" item="item">
+    <view class="good_list">
+      <view class="image_box">
+        <image src="{{item.good.coverImg.url}}" />
+      </view>
+      <view class="goods">
+        <view class="product_name">{{item.good.name}}</view>
+        <view class="product_rule">规格:{{item.good.level}}</view>
+        <view class="product_info">
+          <view class="price">￥{{item.good.price}}</view>
+          <view class="goods_num">x{{item.count}}</view>
         </view>
-    </repeat>
+      </view>
+    </view>
+  </repeat>
 </template>
 <script>
 import wepy from 'wepy';

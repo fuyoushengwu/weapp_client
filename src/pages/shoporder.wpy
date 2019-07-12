@@ -47,9 +47,9 @@ export default class Order extends wepy.page {
       { name: '已完成', dotNum: 0 }
     ],
     currentTab: -1,
-    // 订单的配送方式:  0:到店自取(pickup); 1:送货上门(ownsend); 2:快递(thirdsend);
+    // 配送方式:0:未知类型(unknow); 1:到店自取(pickup); 2:送货上门(ownsend); 3:快递(thirdsend);
     sendTypeList: [],
-    // 订单状态:0:未知类型,1:预订;2:未开始;3:进行中;4:已完成;5:订单超时
+    // 订单状态:0:未知类型(unkown); 1:预订(preorder); 2:未开始(unstart); 3:进行中(doing); 4:已完成(finished); 5:订单超时(overtime)
     orderstatusList: [],
 
     shoporderList: [],

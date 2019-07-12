@@ -1,10 +1,10 @@
 <template>
   <view class="points">
-    <image src="../images/bc_qdyl.png" class="head_bc"/>
+    <image src="../images/bc_qdyl.png" class="head_bc" />
     <view class="jf_content">
       <view class="jf_header">
         <view class="image_box">
-          <image class="avatarUrl" src="{{avatarUrl}}"/>
+          <image class="avatarUrl" src="{{avatarUrl}}" />
         </view>
         <view class="jf_num cfff">
           <view class="jf_title">通用积分</view>
@@ -68,24 +68,6 @@ export default class Points extends wepy.page {
         return;
       }
       let getUserVoucherListResponse = response.data;
-      getUserVoucherListResponse.dataList.forEach(uservoucher => {
-        if (
-          !uservoucher.goodVoucher ||
-          !uservoucher.goodVoucher.voucherItemIdList
-        ) {
-          return;
-        }
-        uservoucher.goodVoucher.voucherItemList = [];
-        uservoucher.goodVoucher.voucherItemIdList.forEach(voucherItemId => {
-          CouponAPI.getVoucherItem(voucherItemId).then(res => {
-            let response = res.data || {};
-            if (response.code == 200) {
-              uservoucher.goodVoucher.voucherItemList.push(response.data);
-              that.$apply();
-            }
-          });
-        });
-      });
       that.uservoucherList = getUserVoucherListResponse.dataList;
       that.$apply();
     });

@@ -1,82 +1,96 @@
 <template>
   <view style="height:{{winHeight}}rpx;overflow:hidden">
-      
-      <swiper indicator-dots autoplay interval="5000" duration="500" indicator-active-color="#ffc452" indicator-color="#efefef" class="swiper">
-        <block wx:for="{{goodDetail.detailImgList}}" wx:key="item">
-            <swiper-item>
-              <image src="{{item}}" class="slide-image" @tap="previewImage({{item}})"/>
-            </swiper-item>
+    <swiper
+      indicator-dots
+      autoplay
+      interval="5000"
+      duration="500"
+      indicator-active-color="#ffc452"
+      indicator-color="#efefef"
+      class="swiper"
+    >
+      <block wx:for="{{goodDetail.detailImgList}}" wx:key="item">
+        <swiper-item>
+          <image src="{{item}}" class="slide-image" @tap="previewImage({{item}})" />
+        </swiper-item>
+      </block>
+    </swiper>
+
+    <view class="details-msg">
+      <view class="details-title">{{good.name}}</view>
+      <view class="details_pinfo">
+        <text class="price">￥{{good.price}}</text>
+        <view class="other-price">销量:{{good.salecount}}/月</view>
+        <view class="other-price">库存:{{good.count}}</view>
+        <button open-type="share" class="share-box">
+          <i class="iconfont icon-share"></i>
+          <text>分享</text>
+        </button>
+      </view>
+      <view
+        class="baoyou"
+        wx:if="{{goodDetail.lifetime!=undefined}}"
+      >保质期:{{goodDetail.lifetime.start}} / {{goodDetail.lifetime.end}}</view>
+      <view
+        class="baoyou"
+        wx:if="{{good.barcode!=undefined&&good.barcode!=''}}"
+      >条形码:{{good.barcode}}</view>
+    </view>
+
+    <view class="detail-bottom">
+      <view class="bottom-box">
+        <view class="item" @tap="homePage">
+          <i class="iconfont icon-home"></i>
+          <view class="doc">首页</view>
+        </view>
+
+        <button open-type="contact" class="item" style="line-height:1;background-color:#FFFFFF;">
+          <i class="iconfont icon-message"></i>
+          <view class="doc">客服</view>
+        </button>
+
+        <block wx:if="{{good.count>0}}">
+          <view class="sy-bottom {{'btn_cart'}}" @tap="addToShopCart">加入购物车</view>
+          <view class="sy-bottom {{'btn_order'}}" @tap="buyDirect">立即购买</view>
         </block>
-      </swiper>
 
-      <view class="details-msg">
-        <view class="details-title">{{good.name}}</view>
-        <view class="details_pinfo">
-          <text class="price">￥{{good.price}}</text>
-          <view class="other-price">销量:{{good.salecount}}/月</view>
-          <view class="other-price">库存:{{good.count}}</view>
-          <button open-type="share" class="share-box">
-            <i class="iconfont icon-share"></i>
-            <text>分享</text>
-          </button>
-        </view>
-        <view class="baoyou" wx:if="{{goodDetail.lifetime!=undefined}}">保质期:{{goodDetail.lifetime.start}} / {{goodDetail.lifetime.end}}</view>
-        <view class="baoyou" wx:if="{{good.barcode!=undefined&&good.barcode!=''}}">条形码:{{good.barcode}}</view>
+        <block wx:else>
+          <view class="sy-bottom {{'btn_cart'}}" @tap="takePreOrder">预订</view>
+        </block>
       </view>
+    </view>
 
-      <view class="detail-bottom">
-        <view class="bottom-box">
-          <view class="item" @tap="homePage">
-            <i class="iconfont icon-home"></i>
-            <view class="doc">首页</view>
+    <view class="over_model {{hidden?'hidden':''}}"></view>
+    <view class="panle_model {{hidden?'hidden':''}}" animation="{{animationData}}">
+      <view class="model_content">
+        <view class="head_box">
+          <view class="img_wrap">
+            <image class="goods_img" src="{{good.coverImg.url}}" />
           </view>
-
-          <button open-type="contact" class="item" style="line-height:1;background-color:#FFFFFF;">
-            <i class="iconfont icon-message"></i>
-             <view class="doc">客服</view>
-          </button>
-      
-          <block wx:if="{{good.count>0}}">
-            <view class="sy-bottom {{'btn_cart'}}" @tap="addToShopCart">加入购物车</view>
-            <view class="sy-bottom {{'btn_order'}}" @tap="buyDirect">立即购买</view>
-          </block>
-      
-          <block wx:else>
-            <view class="sy-bottom {{'btn_cart'}}" @tap="takePreOrder">预订</view>
-          </block>
+          <view class="product_wrap">
+            <view class="product_name">{{good.name}}</view>
+            <view class="price">￥ {{good.price}}</view>
+          </view>
         </view>
-      </view>
 
-      <view class="over_model {{hidden?'hidden':''}}"></view>
-      <view class="panle_model {{hidden?'hidden':''}}" animation="{{animationData}}">
-        <view class="model_content">
-          <view class="head_box">
-            <view class="img_wrap">
-              <image class="goods_img" src="{{good.coverImg.url}}"/>
-            </view>
-            <view class="product_wrap">
-              <view class="product_name">{{good.name}}</view>
-              <view class="price">￥ {{good.price}}</view>
+        <scroll-view scroll-y style="height:400rpx">
+          <view class="num_box">
+            <view class="title">数量</view>
+            <view class="stock">库存:{{good.count}}件</view>
+            <view class="buy-num">
+              <view class="jian-btn" @tap.stop="decreaseCount()">-</view>
+              <input type="number" @input="inputCount" value="{{orderNum}}" />
+              <view class="jia-btn" @tap.stop="increaseCount()">+</view>
             </view>
           </view>
+        </scroll-view>
 
-          <scroll-view scroll-y style="height:400rpx">
-            <view class="num_box">
-              <view class="title">数量</view>
-              <view class="stock">库存:{{good.count}}件</view>
-              <view class="buy-num">
-                <view class="jian-btn" @tap.stop="decreaseCount()">-</view>
-                <input type="number" @input="inputCount" value="{{orderNum}}"/>
-                <view class="jia-btn" @tap.stop="increaseCount()">+</view>
-              </view>
-            </view>
-          </scroll-view>
-
-          <view class="close_model" @tap="closeModel"><i class="iconfont icon-close"/></view>
+        <view class="close_model" @tap="closeModel">
+          <i class="iconfont icon-close" />
         </view>
-        <view class="confirm_btn" @tap.stop="confirmTake">确定</view>
       </view>
-
+      <view class="confirm_btn" @tap.stop="confirmTake">确定</view>
+    </view>
   </view>
 </template>
 <script>
@@ -179,27 +193,27 @@ export default class GoodDetail extends wepy.page {
   // 加入购物车
   async doAddToShopCart() {
     let that = this;
-    ShopCartAPI
-      .addShopCartItem(GlobalData.getUsername(), {
-        goodId: this.goodId,
-        goodNum: this.orderNum
-      })
-      .then(res => {
-        let response = res.data || {};
-        if (response.code != 200) {
-          tip.error('该商品无法加入购物车');
-          return;
-        }
-        GlobalData.addShopCart(response.data);
-        that.winHeight = '100%';
-        that.animation.height(0).step();
-        that.animationData = that.animation.export();
-        setTimeout(() => {
-          that.hidden = true;
-          that.$apply();
-        }, 100);
+    ShopCartAPI.addShopCartItem(GlobalData.getUsername(), {
+      goodId: this.goodId,
+      goodNum: this.orderNum
+    }).then(res => {
+      let response = res.data || {};
+      if (response.code != 200) {
+        tip.error('该商品无法加入购物车');
+        return;
+      }
+      let shopCart = response.data;
+      shopCart.good = that.good;
+      GlobalData.addShopCart(shopCart);
+      that.winHeight = '100%';
+      that.animation.height(0).step();
+      that.animationData = that.animation.export();
+      setTimeout(() => {
+        that.hidden = true;
         that.$apply();
-      });
+      }, 100);
+      that.$apply();
+    });
   }
   // 立即购买
   async doBuyDirect() {
@@ -210,7 +224,9 @@ export default class GoodDetail extends wepy.page {
 
     let response = json.data || {};
     if (response.code == 200) {
-      GlobalData.addShopCart(response.data);
+      let shopCart = response.data;
+      shopCart.good = this.good;
+      GlobalData.addShopCart(shopCart);
       this.winHeight = '100%';
       this.animation.height(0).step();
       this.setData({
@@ -235,7 +251,9 @@ export default class GoodDetail extends wepy.page {
     });
     let response = json.data || {};
     if (response.code == 200) {
-      GlobalData.addShopCart(response.data);
+      let shopCart = response.data;
+      shopCart.good = this.good;
+      GlobalData.addShopCart(shopCart);
       this.winHeight = '100%';
       this.animation.height(0).step();
       this.setData({

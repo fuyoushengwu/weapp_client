@@ -40,6 +40,18 @@ function getGood(goodId) {
     return new WXRequest().request(`/goods-service/good/${goodId}`);
 }
 
+/**
+ * 获取商品信息
+ * @param {*} goodIdList 
+ */
+function getGoodList(goodIdList) {
+    let queryUrl = `/goods-service/good?`;
+    goodIdList.forEach(element => {
+        queryUrl += `good_id=${element}&`;
+    });
+    return new WXRequest().request(queryUrl);
+}
+
 
 /**
  * 获取商品详细信息
@@ -53,5 +65,6 @@ function getGoodDetail(goodId) {
 module.exports = {
     getClassifyGoodList,
     getGood,
+    getGoodList,
     getGoodDetail
 }
