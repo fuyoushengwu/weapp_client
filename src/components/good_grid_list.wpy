@@ -18,11 +18,11 @@
                 </view>
                 <view class="jifen" wx:if="{{item.score>0}}">
                   <i class="iconfont icon-money"></i>
-                  <view class="value">{{item.score}}</view>
+                  <view class="value">通用积分:{{item.score}}分</view>
                 </view>
-                <view class="duihuanquan" wx:if="{{item.goodvoucher!=undefined}}">
+                <view class="duihuanquan" wx:if="{{item.goodVoucher!=undefined}}">
                   <i class="iconfont icon-collection"></i>
-                  <view class="value">{{item.goodvoucher.name}}</view>
+                  <view class="value">{{item.goodVoucher.name}}</view>
                 </view>
             </view>
         </navigator> 

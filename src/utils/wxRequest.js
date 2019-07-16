@@ -56,7 +56,11 @@ export default class WXRequest {
                         let response = res.data || {};
                         GlobalData.setAccessToken("Bearer " + (response.access_token || ''));
                         GlobalData.setRefreshToken(response.refresh_token || '');
-                        return that.request(url, params, showload, true);
+                        that.request(url, params, showload, true).then(res => {
+                            resolve(res);
+                        }).catch(error => {
+                            reject(error)
+                        });
                     })
 
                 } else {

@@ -160,6 +160,7 @@ import {
 } from '../utils/constant';
 import GlobalData from '../conf/globalData';
 import util from '../utils/util';
+import UserAPI from '../api/userapi';
 import PreviewAPI from '../api/previewapi';
 import ShopOrderAPI from '../api/shoporderapi';
 import ShopCartAPI from '../api/shopcartapi';
@@ -319,9 +320,7 @@ export default class ConfirmOrder extends wepy.page {
       if (response.code != 200) {
         return;
       }
-      let getUserShopOrderVoucherListResponse = response.data;
-      that.shoporderVoucherList =
-        getUserShopOrderVoucherListResponse.voucherList;
+      that.shoporderVoucherList = response.data;
       that.shoporderVoucherList.forEach(shoporderVoucher => {
         that.voucher_price += shoporderVoucher.good.price;
       });
@@ -452,6 +451,12 @@ export default class ConfirmOrder extends wepy.page {
           }
         }
       );
+      UserAPI.getUser(GlobalData.getUsername()).then(res => {
+        let response = res.data || {};
+        if (response.code == 200) {
+          GlobalData.setUserInfo(response.data);
+        }
+      });
       tip.alert('订单提交成功');
       wepy.redirectTo({
         url: `/pages/shoporder?send_type=${submitRequest.sendType}&orderstatus=${submitRequest.status}`

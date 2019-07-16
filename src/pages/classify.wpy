@@ -10,20 +10,39 @@
     </view>
 
     <view class="classify" style="height:{{windowHeight-50}}px">
-        <scroll-view class="classify_catetory" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
-          <view class="name {{item.active? 'active':''}}" wx:for="{{topClassifyList}}" wx:key="item" @tap="changeTopClassify({{item.id}})">
-              {{item.name}}
-          </view>
-        </scroll-view>
-        <scroll-view class="classify_detail" scroll-y scroll-with-animation="true" style="height:{{windowHeight-50}}px">
-          <view class="children">
-            <navigator hover-class="none" class="children_item" wx:for="{{subClassifyList}}" wx:for-item="item" wx:key="id" 
-                url="/pages/search?classify_id={{item.id}}&title={{item.name}}">
-              <image class="child_image" src="{{item.coverImg.url}}"/>
-              <view class="child_name">{{item.name}}</view>
-            </navigator>
-          </view>
-        </scroll-view>
+      <scroll-view
+        class="classify_catetory"
+        scroll-y
+        scroll-with-animation="true"
+        style="height:{{windowHeight-50}}px"
+      >
+        <view
+          class="name {{item.active? 'active':''}}"
+          wx:for="{{topClassifyList}}"
+          wx:key="item"
+          @tap="changeTopClassify({{item.id}})"
+        >{{item.name}}</view>
+      </scroll-view>
+      <scroll-view
+        class="classify_detail"
+        scroll-y
+        scroll-with-animation="true"
+        style="height:{{windowHeight-50}}px"
+      >
+        <view class="children">
+          <navigator
+            hover-class="none"
+            class="children_item"
+            wx:for="{{subClassifyList}}"
+            wx:for-item="item"
+            wx:key="id"
+            url="/pages/search?classify_id={{item.id}}&title={{item.name}}"
+          >
+            <image class="child_image" src="{{item.coverImg.url}}" />
+            <view class="child_name">{{item.name}}</view>
+          </navigator>
+        </view>
+      </scroll-view>
     </view>
   </view>
 </template>
@@ -71,16 +90,17 @@ export default class Classify extends wepy.page {
     this.inRequesting = true;
     wx.showNavigationBarLoading();
     let that = this;
-    ClassifyAPI.getTopClassifyList().then(res => {
-      that.inRequesting = false;
-      wx.hideNavigationBarLoading();
-      wx.stopPullDownRefresh();
-      let response = res.data || {};
-      if (response.code == 200) {
-        that.topClassifyList = response.data;
-        that.$apply();
-      }
-    });
+    ClassifyAPI.getTopClassifyList()
+      .then(res => {
+        that.inRequesting = false;
+        wx.hideNavigationBarLoading();
+        wx.stopPullDownRefresh();
+        let response = res.data || {};
+        if (response.code == 200) {
+          that.topClassifyList = response.data;
+          that.$apply();
+        }
+      });
   }
 
   /**

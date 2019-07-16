@@ -10,12 +10,19 @@
             <span class="detail-money">+{{item.score}}</span>
           </view>
           <view class="detail-right">
-            <i  class="iconfont icon-up" wx:if="{{item.showVoucherItem}}"></i>
-            <i  class="iconfont icon-down" wx:else></i>
+            <i class="iconfont icon-up" wx:if="{{item.showVoucherItem}}"></i>
+            <i class="iconfont icon-down" wx:else></i>
           </view>
         </view>
-        <view class="detai-list" wx:if="{{item.showVoucherItem}}" wx:for="{{item.goodVoucher.voucherItemList}}" wx:for-item="voucherItem"  
-              wx:for-index="voucherItemIndex" wx:key="voucherItem" @tap.stop="gotoGood({{index}},{{voucherItemIndex}})">
+        <view
+          class="detai-list"
+          wx:if="{{item.showVoucherItem}}"
+          wx:for="{{item.goodVoucher.voucherItemList}}"
+          wx:for-item="voucherItem"
+          wx:for-index="voucherItemIndex"
+          wx:key="voucherItem"
+          @tap.stop="gotoGood({{index}},{{voucherItemIndex}})"
+        >
           <view class="detai-left">
             <view class="detai-name">{{voucherItem.name}}</view>
           </view>
@@ -62,7 +69,7 @@ export default class PointsDetail extends wepy.component {
         userVoucher.goodVoucher.voucherItemList[voucherItemIndex];
       if (userVoucher.score >= voucherItem.score) {
         wepy.navigateTo({
-          url: '/pages/good_detail?good_id=' + voucherItem.good.id
+          url: '/pages/good_detail?good_id=' + voucherItem.goodId
         });
       } else {
         tip.alert(
