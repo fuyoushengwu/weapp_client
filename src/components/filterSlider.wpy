@@ -1,33 +1,39 @@
 <template>
-    <view wx:if="{{show}}">
-        <view class="filter-slider">
-            <view class="block">
-                <view class="title">规格</view>
-                <view class="item_box">
-                    <block wx:for="{{packObjArray}}" wx:key="item">
-                        <view class="item {{item.active?'active':''}}" @tap.stop="choosePack({{item.name}})">{{item.name}}</view>
-                    </block>
-                </view>
-            </view>
-            <view class="block">
-                <view class="title">阶段</view>
-                <view class="item_box">
-                  <block wx:for="{{levelObjArray}}" wx:key="item">
-                        <view class="item  {{item.active?'active':''}}" @tap.stop="chooseLevel({{item.name}})">{{item.name}}</view>
-                  </block>
-                </view>
-            </view>
-            <view class="btn_group">
-              <view class="btn_left_box">
-                <view class="button type_empty" @tap="reset">重置</view>
-              </view>
-              <view class="btn_right_box">
-                <view class="button type_yellow" @tap="refreshFilter">确认</view>
-              </view>
-            </view>
+  <view wx:if="{{show}}">
+    <view class="filter-slider">
+      <view class="block">
+        <view class="title">规格</view>
+        <view class="item_box">
+          <block wx:for="{{packObjArray}}" wx:key="item">
+            <view
+              class="item {{item.active?'active':''}}"
+              @tap.stop="choosePack({{item.value}})"
+            >{{item.name}}</view>
+          </block>
         </view>
-        <view class="modal-overlay modal-overlay-visible" @tap="close"></view>
+      </view>
+      <view class="block">
+        <view class="title">阶段</view>
+        <view class="item_box">
+          <block wx:for="{{levelObjArray}}" wx:key="item">
+            <view
+              class="item {{item.active?'active':''}}"
+              @tap.stop="chooseLevel({{item.value}})"
+            >{{item.name}}</view>
+          </block>
+        </view>
+      </view>
+      <view class="btn_group">
+        <view class="btn_left_box">
+          <view class="button type_empty" @tap="reset">重置</view>
+        </view>
+        <view class="btn_right_box">
+          <view class="button type_yellow" @tap="refreshFilter">确认</view>
+        </view>
+      </view>
     </view>
+    <view class="modal-overlay modal-overlay-visible" @tap="close"></view>
+  </view>
 </template>
 <script>
 import wepy from 'wepy';
@@ -49,24 +55,53 @@ export default class FilterSlider extends wepy.component {
     // 产品的单位
     packArray: []
   };
+
+  /**
+   * 展示 OR 隐藏
+   */
   triggerDisplay() {
     this.show = !this.show;
     this.$apply();
   }
+
+  /**
+   * 设置商品阶段对象 数组
+   */
+  setLevelObjArray(levelArray) {
+    this.levelObjArray = [];
+    let that = this;
+    levelArray.forEach(function(item, index) {
+      if (item != null) {
+        that.levelObjArray.push({ name: item, value: item, active: false });
+      } else {
+        that.levelObjArray.push({ name: '未设置', value: item, active: false });
+      }
+    });
+    this.$apply();
+  }
+
+  /**
+   * 设置商品规格对象 数组
+   */
+  setPackObjArray(pickArray) {
+    this.packObjArray = [];
+    let that = this;
+    pickArray.forEach(function(item, index) {
+      if (item != null) {
+        that.packObjArray.push({ name: item, value: item, active: false });
+      } else {
+        that.packObjArray.push({ name: '未设置', value: item, active: false });
+      }
+    });
+    that.$apply();
+  }
+
   watch = {
     levelArray(newValue) {
-      let that = this;
-      newValue.forEach(function(item, index) {
-        that.levelObjArray.push({ name: item, active: false });
-      });
-      this.$apply();
+      this.setLevelObjArray(newValue);
     },
     packArray(newValue) {
-      let that = this;
-      newValue.forEach(function(item, index) {
-        that.packObjArray.push({ name: item, active: false });
-      });
-      this.$apply();
+      this.setPackObjArray(newValue);
     }
   };
   methods = {
@@ -81,7 +116,7 @@ export default class FilterSlider extends wepy.component {
         this.packFilter.splice(index, 1);
       }
       this.packObjArray.forEach(function(item, index) {
-        if (item.name == pack) {
+        if (item.value == pack) {
           item.active = !item.active;
         }
       });
@@ -95,7 +130,7 @@ export default class FilterSlider extends wepy.component {
         this.levelFilter.splice(index, 1);
       }
       this.levelObjArray.forEach(function(item, index) {
-        if (item.name == level) {
+        if (item.value == level) {
           item.active = !item.active;
         }
       });
@@ -104,15 +139,8 @@ export default class FilterSlider extends wepy.component {
     reset() {
       this.packFilter = [];
       this.levelFilter = [];
-      this.packObjArray = [];
-      this.levelObjArray = [];
-      let that = this;
-      this.packArray.forEach(function(item, index) {
-        that.packObjArray.push({ name: item, active: false });
-      });
-      this.levelArray.forEach(function(item, index) {
-        that.levelObjArray.push({ name: item, active: false });
-      });
+      this.setLevelObjArray(this.levelArray);
+      this.setPackObjArray(this.packArray);
     },
     refreshFilter() {
       this.$emit('refreshFilter', {
